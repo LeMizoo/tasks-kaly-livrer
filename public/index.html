@@ -532,6 +532,87 @@ tbody tr:last-child td{border-bottom:none;}
   .copy-btn{font-size:.72rem;padding:.4rem .7rem;}
 }
 
+
+/* Badge compteur d'usage de modèle */
+.usage-badge{
+  display:inline-flex;align-items:center;gap:.3rem;
+  font-size:.68rem;font-weight:700;
+  padding:.2rem .55rem;border-radius:20px;
+  background:rgba(37,99,235,.1);color:#2563eb;
+  margin-left:.4rem;letter-spacing:.02em;
+  transition:background .2s;
+}
+.usage-badge.used{background:rgba(5,150,105,.12);color:var(--success);}
+
+/* Bouton génération ZIP */
+.btn-generate{
+  background:linear-gradient(135deg,#10b981,#059669) !important;
+  color:#fff !important;border:none !important;
+  font-weight:800 !important;
+  box-shadow:0 4px 12px -2px rgba(16,185,129,.4) !important;
+}
+.btn-generate:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.btn-generate:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.6);}
+
+/* Modale de progression ZIP */
+.zip-modal{
+  position:fixed;inset:0;background:rgba(15,23,42,.85);
+  backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;
+  z-index:3000;padding:1rem;animation:fadeIn .2s ease;
+}
+.zip-modal-content{
+  background:var(--card-bg);border-radius:var(--radius-lg);
+  padding:2rem;max-width:520px;width:100%;
+  box-shadow:0 30px 60px -15px rgba(0,0,0,.4);
+  animation:slideUp .3s cubic-bezier(.16,1,.3,1);
+}
+.zip-modal-title{
+  font-size:1.25rem;font-weight:800;color:var(--primary);
+  margin:0 0 .5rem;text-align:center;letter-spacing:-.01em;
+}
+.zip-modal-sub{
+  font-size:.85rem;color:var(--muted);text-align:center;
+  margin-bottom:1.5rem;
+}
+.zip-progress-list{
+  max-height:280px;overflow-y:auto;
+  background:rgba(0,0,0,.02);border-radius:var(--radius-sm);
+  padding:.75rem;margin-bottom:1rem;
+  font-family:'SF Mono',Consolas,monospace;font-size:.78rem;
+  border:1px solid var(--border);
+}
+.zip-progress-item{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.25rem 0;color:var(--muted);
+}
+.zip-progress-item.done{color:var(--success);}
+.zip-progress-item.active{color:var(--accent);font-weight:700;}
+.zip-progress-item .icon{width:18px;text-align:center;}
+.zip-final-actions{
+  display:flex;gap:.6rem;flex-wrap:wrap;
+}
+.zip-final-actions button{
+  flex:1;padding:.85rem;border-radius:var(--radius-sm);
+  font-weight:700;font-size:.9rem;cursor:pointer;border:none;
+  transition:filter .15s;
+}
+.zip-final-actions .btn-download{
+  background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+  box-shadow:0 4px 12px -2px rgba(16,185,129,.4);
+}
+.zip-final-actions .btn-download:hover{filter:brightness(1.08);}
+.zip-final-actions .btn-close{
+  background:var(--card-bg);border:1.5px solid var(--border) !important;
+  color:var(--text);
+}
+.zip-final-actions .btn-close:hover{background:var(--border);}
+
+@media (max-width:700px){
+  .zip-modal-content{padding:1.5rem 1.25rem;}
+  .zip-modal-title{font-size:1.1rem;}
+  .zip-progress-list{font-size:.72rem;max-height:200px;}
+}
+
 </style>
 </head>
 <body>
@@ -637,6 +718,7 @@ tbody tr:last-child td{border-bottom:none;}
     <button onclick="exportJSON()">💾 JSON</button>
     <button onclick="exportCSV()">📊 CSV</button>
     <button onclick="document.getElementById('import-file').click()">📥 Import</button>
+    <button onclick="generateFinalZip()" class="btn-generate" title="Générer un ZIP avec tous les fichiers finaux">📦 Générer le livrable final</button>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
   </div>
 
@@ -1321,6 +1403,7 @@ function copyTemplate(taskId, btn){
     btn.innerText = '✅ Copié !';
     btn.classList.add('copied');
     showToast('Modèle copié dans le presse-papier', 'success');
+    trackUsage(taskId, 'copy');
     setTimeout(()=>{ btn.innerText = old; btn.classList.remove('copied'); }, 2000);
   }).catch(()=>showToast('Impossible de copier', 'error'));
 }
@@ -1328,8 +1411,11 @@ function copyTemplate(taskId, btn){
 function downloadTemplate(taskId){
   const tpl = getTemplate(taskId);
   if(!tpl) return;
-  downloadFile(tpl, taskId + '-modele.txt', 'text/plain');
+  const ext = getExtForTask(taskId);
+  const content = ext==='html' ? wrapHtmlSnippet(taskId, tpl) : tpl;
+  downloadFile(content, taskId + '-modele.' + ext, ext==='json'?'application/json':'text/plain');
   showToast('Fichier téléchargé', 'success');
+  trackUsage(taskId, 'download');
 }
 
 /* ---------- RENDU DES LIGNES ---------- */
@@ -1399,7 +1485,7 @@ function renderRow(t){
       ${getTemplate(t.id) ? `
       <div id="tpl-${t.id}" class="expand-content" style="background:transparent;padding:0;">
         <div class="template-block">
-          <h6>📝 Modèle prêt à l'emploi</h6>
+          <h6>📝 Modèle prêt à l'emploi <span class="usage-badge" id="usage-${t.id}">○ non utilisé</span></h6>
           <pre>${escapeHtml(getTemplate(t.id))}</pre>
           <div class="tpl-actions">
             <button class="copy-btn" onclick="copyTemplate('${t.id}', this)">📋 Copier</button>
@@ -1597,6 +1683,7 @@ function applyStateToUI(state){
     }
   });
   updateAllAssigneeChips();
+  updateAllUsageBadges();
   updateProgressUI(); updateStatsDashboard(); renderKanban(); updateAlertBadges();
 }
 
@@ -1967,6 +2054,372 @@ function showToast(message, type=''){
   c.appendChild(t);
   setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); },3000);
 }
+
+
+/* ---------- COMPTEUR D'USAGE DES MODÈLES ---------- */
+const USAGE_KEY = 'kaly-livrer-usage-v3';
+
+function getUsage(){
+  try{ return JSON.parse(localStorage.getItem(USAGE_KEY)||'{}'); }catch(e){ return {}; }
+}
+function setUsage(u){
+  try{ localStorage.setItem(USAGE_KEY, JSON.stringify(u)); }catch(e){}
+}
+function trackUsage(taskId, action){
+  const u = getUsage();
+  if(!u[taskId]) u[taskId] = {copy:0, download:0, last:null, firstUse:null};
+  u[taskId][action] = (u[taskId][action]||0) + 1;
+  u[taskId].last = new Date().toISOString();
+  if(!u[taskId].firstUse) u[taskId].firstUse = new Date().toISOString();
+  setUsage(u);
+  updateUsageBadge(taskId);
+  logAudit('utilise modèle ('+action+')', taskId, '');
+}
+function updateUsageBadge(taskId){
+  const badge = document.getElementById('usage-'+taskId);
+  if(!badge) return;
+  const u = getUsage()[taskId];
+  if(!u || (!u.copy && !u.download)){
+    badge.textContent = '○ non utilisé';
+    badge.classList.remove('used');
+  }else{
+    const total = (u.copy||0) + (u.download||0);
+    badge.textContent = `✓ utilisé ×${total}`;
+    badge.classList.add('used');
+  }
+}
+function updateAllUsageBadges(){
+  document.querySelectorAll('.task-row').forEach(row=>{
+    updateUsageBadge(row.getAttribute('data-id'));
+  });
+}
+
+/* ---------- GÉNÉRATION DU LIVRABLE ZIP ---------- */
+// Charge JSZip depuis CDN (une seule fois, lazy)
+function loadJSZip(cb){
+  if(window.JSZip){ cb(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+  s.onload = cb;
+  s.onerror = () => showToast('Erreur chargement JSZip', 'error');
+  document.head.appendChild(s);
+}
+
+// Convertit un contenu en extension selon la nature de la tâche
+function getExtForTask(taskId){
+  const map = {
+    'GEO-001':'md','GEO-002':'md','GEO-005':'md','GEO-007':'md',
+    'GEO-019':'md','GEO-020':'md',
+    'GEO-006':'md','GEO-011':'html','GEO-012':'md','GEO-021':'md',
+    'GEO-003':'html','GEO-004':'html','GEO-008':'html','GEO-009':'json',
+    'GEO-010':'json','GEO-013':'html','GEO-014':'html','GEO-015':'txt',
+    'GEO-016':'conf','GEO-017':'html','GEO-018':'html','GEO-022':'txt'
+  };
+  return map[taskId] || 'txt';
+}
+
+// Convertit le HTML "snippet" en fichier .html complet si pertinent
+function wrapHtmlSnippet(taskId, content){
+  if(getExtForTask(taskId) !== 'html') return content;
+  // Ne pas encapsuler les snippets sans balise root
+  if(/<html|<head|<body/i.test(content)) return content;
+  return `<!-- Généré automatiquement par Kaly Livrer — Tâche ${taskId} -->
+<!-- Ce snippet est à intégrer dans le gabarit principal -->
+${content}`;
+}
+
+// Génère le contenu du README.md du ZIP
+function buildReadmeMd(state){
+  const total = Object.keys(state).length;
+  const done = Object.values(state).filter(t=>t.checked).length;
+  const bySection = {po:{done:0,total:0},juridique:{done:0,total:0},dev:{done:0,total:0}};
+  const TASKS_RE = /id:'(GEO-\d+)',section:'(po|juridique|dev)'/g;
+  let m;
+  while((m = TASKS_RE.exec(html_source)) !== null){
+    const [_,id,sec] = m;
+    bySection[sec].total++;
+    if(state[id] && state[id].checked) bySection[sec].done++;
+  }
+  const now = new Date();
+  return `# Kaly Livrer — Livrable Audit GEO
+Généré le ${now.toLocaleString('fr-FR')}
+
+## Avancement global
+**${done}/${total} tâches terminées** (${Math.round(done/total*100)}%)
+
+| Section | Terminées |
+|---|---|
+| 🔴 PO & Commercial | ${bySection.po.done}/${bySection.po.total} |
+| ⚖️ Juridique & Rédac | ${bySection.juridique.done}/${bySection.juridique.total} |
+| 💻 Dev & SEO | ${bySection.dev.done}/${bySection.dev.total} |
+
+## Organisation des fichiers
+- \`01-PO-commercial/\` — Modèles de rédaction et grilles tarifaires
+- \`02-Juridique-redac/\` — Pages légales, FAQ, landing B2B
+- \`03-Dev-SEO/\` — Snippets HTML, JSON-LD, robots.txt, sitemap
+- \`_rapports/\` — Avancement, historique, statistiques
+
+## Comment utiliser ce livrable
+1. Chaque fichier correspond à une tâche de l'audit GEO.
+2. Les fichiers \`.md\` sont prêts à copier dans votre CMS.
+3. Les fichiers \`.html\` sont des snippets à intégrer dans le gabarit.
+4. Les fichiers \`.json\` sont à inclure dans \`<script type="application/ld+json">\`.
+5. \`_rapports/avancement.json\` contient l'état complet.
+6. \`_rapports/historique.json\` trace qui a fait quoi et quand.
+
+## Contact
+Projet : Kaly Livrer (RAPEX SARL)
+Zone : Antananarivo, Madagascar
+
+---
+_Généré automatiquement par l'outil interne Kaly Livrer._
+`;
+}
+
+// Génère le rapport statistiques.md
+function buildStatsMd(state){
+  const members = ['Eric','Miora','Tovo','Nanci','Safidy','Lioka'];
+  const byMember = {};
+  members.forEach(m => byMember[m] = {assigned:0,done:0});
+  const byPrio = {P0:{done:0,total:0},P1:{done:0,total:0},P2:{done:0,total:0},P3:{done:0,total:0}};
+
+  document.querySelectorAll('.task-row').forEach(row=>{
+    const id = row.getAttribute('data-id');
+    const prio = row.getAttribute('data-priority');
+    const sel = row.querySelector('.task-assignee');
+    const isDone = state[id] && state[id].checked;
+    const a = sel ? sel.value : '';
+    if(a && byMember[a]){
+      byMember[a].assigned++;
+      if(isDone) byMember[a].done++;
+    }
+    if(byPrio[prio]){
+      byPrio[prio].total++;
+      if(isDone) byPrio[prio].done++;
+    }
+  });
+
+  const lines = [];
+  lines.push('# Statistiques — Audit GEO Kaly Livrer');
+  lines.push('');
+  lines.push('## Par membre');
+  lines.push('');
+  lines.push('| Membre | Assignées | Terminées | Restantes | Taux |');
+  lines.push('|---|---|---|---|---|');
+  members.forEach(m=>{
+    const d = byMember[m];
+    const rem = d.assigned - d.done;
+    const pct = d.assigned ? Math.round(d.done/d.assigned*100) : 0;
+    lines.push(`| ${m} | ${d.assigned} | ${d.done} | ${rem} | ${pct}% |`);
+  });
+  lines.push('');
+  lines.push('## Par priorité');
+  lines.push('');
+  lines.push('| Priorité | Terminées | Total | Taux |');
+  lines.push('|---|---|---|---|');
+  Object.keys(byPrio).forEach(p=>{
+    const d = byPrio[p];
+    const pct = d.total ? Math.round(d.done/d.total*100) : 0;
+    lines.push(`| ${p} | ${d.done} | ${d.total} | ${pct}% |`);
+  });
+  lines.push('');
+  lines.push('## Usage des modèles');
+  lines.push('');
+  const usage = getUsage();
+  lines.push('| Tâche | Copies | Téléchargements | 1ère utilisation |');
+  lines.push('|---|---|---|---|');
+  Object.keys(usage).forEach(k=>{
+    const u = usage[k];
+    lines.push(`| ${k} | ${u.copy||0} | ${u.download||0} | ${u.firstUse?new Date(u.firstUse).toLocaleString('fr-FR'):'—'} |`);
+  });
+  if(Object.keys(usage).length === 0){
+    lines.push('| — | — | — | Aucune utilisation |');
+  }
+  return lines.join('\n');
+}
+
+// Fonction principale : génère et télécharge le ZIP
+function generateFinalZip(){
+  const state = {};
+  document.querySelectorAll('.task-row').forEach(row=>{
+    const id = row.getAttribute('data-id');
+    const cb = row.querySelector('.task-cb');
+    const sel = row.querySelector('.task-assignee');
+    state[id] = {checked: cb?cb.checked:false, assignee: sel?sel.value:''};
+  });
+
+  const done = Object.values(state).filter(t=>t.checked).length;
+  const total = Object.keys(state).length;
+
+  // Ouvrir la modale
+  openZipModal(total, done, () => {
+    // Callback quand l'utilisateur clique "Générer"
+    runZipGeneration(state);
+  });
+}
+
+function openZipModal(total, done, onConfirm){
+  const modal = document.createElement('div');
+  modal.className = 'zip-modal';
+  modal.id = 'zip-modal';
+  const pct = Math.round(done/total*100);
+  modal.innerHTML = `
+    <div class="zip-modal-content">
+      <h3 class="zip-modal-title">📦 Générer le livrable final</h3>
+      <p class="zip-modal-sub">
+        Avancement actuel : <strong>${done}/${total}</strong> tâches (${pct}%)
+        ${done < total ? '<br><span style="color:var(--warning);">⚠️ Certaines tâches ne sont pas encore cochées.</span>' : '<br><span style="color:var(--success);">✅ Toutes les tâches sont terminées !</span>'}
+      </p>
+      <div style="background:rgba(37,99,235,.05);border-radius:8px;padding:.9rem;margin-bottom:1.25rem;font-size:.82rem;line-height:1.5;">
+        Le ZIP contiendra tous les modèles (.md, .html, .json, .txt, .xml) organisés par catégorie, plus les rapports d'avancement et d'historique.
+      </div>
+      <div class="zip-final-actions">
+        <button class="btn-close" onclick="closeZipModal()">Annuler</button>
+        <button class="btn-download" onclick="closeZipModal(); (${onConfirm.toString()})()">📦 Générer le ZIP</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+function closeZipModal(){
+  const m = document.getElementById('zip-modal');
+  if(m) m.remove();
+}
+
+function runZipGeneration(state){
+  // Affiche une modale de progression
+  const progModal = document.createElement('div');
+  progModal.className = 'zip-modal';
+  progModal.id = 'zip-progress-modal';
+  progModal.innerHTML = `
+    <div class="zip-modal-content">
+      <h3 class="zip-modal-title">📦 Génération en cours…</h3>
+      <p class="zip-modal-sub">Création de l'archive et des fichiers…</p>
+      <div class="zip-progress-list" id="zip-progress-list"></div>
+    </div>
+  `;
+  document.body.appendChild(progModal);
+
+  const list = document.getElementById('zip-progress-list');
+  const logStep = (label, status='active') => {
+    const item = document.createElement('div');
+    item.className = 'zip-progress-item ' + status;
+    item.innerHTML = `<span class="icon">${status==='done'?'✅':status==='active'?'⏳':'○'}</span> ${label}`;
+    list.appendChild(item);
+    list.scrollTop = list.scrollHeight;
+    return item;
+  };
+
+  loadJSZip(() => {
+    const zip = new JSZip();
+    const root = zip.folder('kaly-livrer-audit-geo-livrable');
+
+    const s1 = logStep('Création du dossier racine…');
+    const sections = {
+      po: {name:'01-PO-commercial', tasks:[]},
+      juridique: {name:'02-Juridique-redac', tasks:[]},
+      dev: {name:'03-Dev-SEO', tasks:[]}
+    };
+
+    document.querySelectorAll('.task-row').forEach(row=>{
+      const id = row.getAttribute('data-id');
+      const sec = row.getAttribute('data-section');
+      if(sections[sec]) sections[sec].tasks.push(id);
+    });
+    s1.classList.remove('active'); s1.classList.add('done');
+
+    const s2 = logStep('Génération des modèles par catégorie…');
+
+    Object.keys(sections).forEach(secKey => {
+      const sec = sections[secKey];
+      const folder = root.folder(sec.name);
+      sec.tasks.forEach(taskId => {
+        const tpl = getTemplate(taskId);
+        if(!tpl) return;
+        const ext = getExtForTask(taskId);
+        const filename = taskId + '-modele.' + ext;
+        const content = ext==='html' ? wrapHtmlSnippet(taskId, tpl) : tpl;
+        folder.file(filename, content);
+      });
+    });
+    s2.classList.remove('active'); s2.classList.add('done');
+
+    const s3 = logStep('Génération des rapports (_rapports/)…');
+    const reportsFolder = root.folder('_rapports');
+
+    // avancement.json
+    reportsFolder.file('avancement.json', JSON.stringify({
+      generateLe: new Date().toISOString(),
+      utilisateur: currentUser || 'anonyme',
+      taches: state
+    }, null, 2));
+
+    // avancement.csv
+    const csvLines = ['ID,Tâche,Priorité,Assigné,Statut,Temps'];
+    document.querySelectorAll('.task-row').forEach(row=>{
+      const id = row.getAttribute('data-id');
+      const task = TASKS.find(t=>t.id===id);
+      if(!task) return;
+      const sel = row.querySelector('.task-assignee');
+      csvLines.push([
+        id,
+        '"' + task.title.replace(/"/g,'""') + '"',
+        task.priority,
+        sel ? sel.value : '',
+        state[id] && state[id].checked ? 'Terminée' : 'À faire',
+        task.time
+      ].join(','));
+    });
+    reportsFolder.file('avancement.csv', '\uFEFF' + csvLines.join('\n'));
+
+    // historique.json
+    const audit = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]');
+    reportsFolder.file('historique.json', JSON.stringify(audit, null, 2));
+
+    // usage modeles
+    reportsFolder.file('usage-modeles.json', JSON.stringify(getUsage(), null, 2));
+
+    // statistiques.md
+    reportsFolder.file('statistiques.md', buildStatsMd(state));
+
+    s3.classList.remove('active'); s3.classList.add('done');
+
+    const s4 = logStep('Compression de l\'archive…');
+    zip.generateAsync({type:'blob', compression:'DEFLATE', compressionOptions:{level:6}}).then(blob => {
+      s4.classList.remove('active'); s4.classList.add('done');
+
+      const s5 = logStep('Téléchargement en cours…', 'active');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kaly-livrer-audit-geo-livrable-${new Date().toISOString().slice(0,10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      s5.classList.remove('active'); s5.classList.add('done');
+
+      // Compteur d'utilisation : marquer toutes les tâches comme "utilisées"
+      Object.keys(state).forEach(id=>{
+        if(getTemplate(id)) trackUsage(id, 'download');
+      });
+
+      setTimeout(()=>{
+        document.getElementById('zip-progress-modal')?.remove();
+        showToast('✅ Livrable ZIP généré et téléchargé !', 'success');
+        logAudit('génération ZIP', 'TOUTES', `${Object.keys(state).length} tâches`);
+      }, 800);
+    }).catch(err => {
+      console.error(err);
+      showToast('Erreur lors de la génération', 'error');
+      document.getElementById('zip-progress-modal')?.remove();
+    });
+  });
+}
+
+// Variable globale pour le README (parsed depuis le source)
+let html_source = '';
 
 /* ---------- RACCOURCIS ---------- */
 function setupKeyboardShortcuts(){
