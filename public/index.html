@@ -143,6 +143,160 @@ th{background:rgba(0,0,0,.03);font-size:.75rem;font-weight:700;text-transform:up
   th:nth-child(6),td:nth-child(6){display:none;}
   .stat-value{font-size:1.2rem;}
 }
+
+/* ================= RESPONSIVE MOBILE AMÉLIORÉ ================= */
+@media (max-width: 700px) {
+  /* Header plus compact */
+  header { padding: 1rem; }
+  header h1 { font-size: 1.1rem !important; line-height: 1.3; }
+  header p { font-size: 0.78rem !important; }
+  .sticky-top-container { padding-top: 0.25rem; }
+
+  /* Bandeau bienvenue compact */
+  .welcome-banner { font-size: 0.78rem; padding: 0.5rem 0.75rem; }
+
+  /* Stats : 2 colonnes au lieu de 1 */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .stat-card { padding: 0.6rem 0.75rem; }
+  .stat-value { font-size: 1.3rem; }
+  .stat-label, .stat-sub { font-size: 0.65rem; }
+
+  /* Toolbar : empile proprement, boutons plus gros */
+  .toolbar { gap: 0.4rem; }
+  .toolbar input, .toolbar select { min-width: 100%; flex: 1 1 100%; font-size: 0.9rem; padding: 0.6rem 0.75rem; }
+  .toolbar button { flex: 1 1 calc(50% - 0.2rem); padding: 0.6rem 0.5rem; font-size: 0.8rem; }
+
+  /* === TABLEAU → CARTES EMPILÉES === */
+  .card table,
+  .card thead,
+  .card tbody,
+  .card th,
+  .card td,
+  .card tr { display: block; width: 100%; }
+  .card thead { display: none; } /* on masque l'en-tête */
+
+  .card tr.task-row {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card tr.task-row[data-priority="P0"] { border-left-color: #ef4444; }
+  .card tr.task-row[data-priority="P1"] { border-left-color: #f59e0b; }
+  .card tr.task-row[data-priority="P2"] { border-left-color: #3b82f6; }
+  .card tr.task-row[data-priority="P3"] { border-left-color: #10b981; }
+
+  /* Chaque cellule devient une ligne interne */
+  .card tr.task-row td {
+    border: none;
+    padding: 0.35rem 0;
+    text-align: left !important;
+  }
+
+  /* Cellule 1 : checkbox + ID + priorité sur une ligne */
+  .card tr.task-row td:nth-child(1) {
+    display: inline-block;
+    width: auto;
+    padding-right: 0.5rem;
+    vertical-align: middle;
+  }
+  .card tr.task-row td:nth-child(1) input { transform: scale(1.4); cursor: pointer; }
+
+  .card tr.task-row td:nth-child(2) {
+    display: inline-block;
+    width: auto;
+    padding-right: 0.5rem;
+    vertical-align: middle;
+  }
+  .card tr.task-row td:nth-child(2) strong { font-size: 0.85rem; color: var(--muted); }
+
+  .card tr.task-row td:nth-child(3) {
+    display: inline-block;
+    width: auto;
+    vertical-align: middle;
+  }
+
+  /* Cellule 4 : contenu principal, pleine largeur */
+  .card tr.task-row td:nth-child(4) {
+    display: block;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.35rem;
+  }
+  .card tr.task-row td:nth-child(4) > strong {
+    font-size: 0.98rem;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Cellule 5 : assignation — pleine largeur */
+  .card tr.task-row td:nth-child(5) {
+    display: block;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--border);
+  }
+  .card tr.task-row td:nth-child(5)::before {
+    content: "👤 Assigné à : ";
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .card tr.task-row td:nth-child(5) select { margin: 0.35rem 0 0; }
+
+  /* Cellule 6 (Temps) : masquée (déjà dans les chips) */
+  .card tr.task-row td:nth-child(6) { display: none; }
+
+  /* Boutons d'action plus accessibles au doigt */
+  .expand-btn {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    background: rgba(217,119,6,0.08);
+    border-radius: 6px;
+    text-align: center;
+    margin: 0.35rem 0 0 0;
+    font-size: 0.8rem;
+  }
+  .expand-btn + .expand-btn { margin-top: 0.35rem; }
+
+  /* Sous-tâches & commentaires : meilleure ergonomie */
+  .subtask { font-size: 0.85rem; padding: 0.4rem 0; }
+  .subtask input[type="checkbox"] { transform: scale(1.3); }
+  .subtask-add input { font-size: 0.85rem; padding: 0.5rem; }
+  .subtask-add button { min-width: 44px; }
+
+  .comment-add textarea { font-size: 0.85rem; }
+  .comment-add button { min-width: 44px; }
+
+  /* Kanban : 1 colonne déjà via la media query existante, on ajuste */
+  .kanban-col { padding: 0.75rem; }
+  .kanban-card { padding: 0.6rem; font-size: 0.85rem; }
+
+  /* Panneau audit plein écran sur mobile */
+  .audit-panel { width: 100vw; max-width: 100vw; }
+
+  /* Charge par membre : tableau compact */
+  .card:has(#workload-tbody) table,
+  .card:has(#workload-tbody) thead,
+  .card:has(#workload-tbody) tbody,
+  .card:has(#workload-tbody) tr,
+  .card:has(#workload-tbody) th,
+  .card:has(#workload-tbody) td { display: revert; }
+  .card:has(#workload-tbody) th,
+  .card:has(#workload-tbody) td { padding: 0.5rem 0.35rem; font-size: 0.78rem; }
+}
+
+/* Très petits écrans (iPhone SE, etc.) */
+@media (max-width: 380px) {
+  .toolbar button { flex: 1 1 100%; }
+  .stat-value { font-size: 1.1rem; }
+}
+
+
 </style>
 </head>
 <body>
