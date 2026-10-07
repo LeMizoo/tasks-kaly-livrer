@@ -2276,39 +2276,49 @@ function generateFinalZip(){
     const sel = row.querySelector('.task-assignee');
     state[id] = {checked: cb?cb.checked:false, assignee: sel?sel.value:''};
   });
-
   const done = Object.values(state).filter(t=>t.checked).length;
   const total = Object.keys(state).length;
-
-  // Ouvrir la modale
-  openZipModal(total, done, () => {
-    // Callback quand l'utilisateur clique "Générer"
-    runZipGeneration(state);
-  });
+  openZipModal(total, done);
 }
 
-function openZipModal(total, done, onConfirm){
+function openZipModal(total, done){
   const modal = document.createElement('div');
   modal.className = 'zip-modal';
   modal.id = 'zip-modal';
   const pct = Math.round(done/total*100);
-  modal.innerHTML = `
-    <div class="zip-modal-content">
-      <h3 class="zip-modal-title">📦 Générer le livrable final</h3>
-      <p class="zip-modal-sub">
-        Avancement actuel : <strong>${done}/${total}</strong> tâches (${pct}%)
-        ${done < total ? '<br><span style="color:var(--warning);">⚠️ Certaines tâches ne sont pas encore cochées.</span>' : '<br><span style="color:var(--success);">✅ Toutes les tâches sont terminées !</span>'}
-      </p>
-      <div style="background:rgba(37,99,235,.05);border-radius:8px;padding:.9rem;margin-bottom:1.25rem;font-size:.82rem;line-height:1.5;">
-        Le ZIP contiendra tous les modèles (.md, .html, .json, .txt, .xml) organisés par catégorie, plus les rapports d'avancement et d'historique.
-      </div>
-      <div class="zip-final-actions">
-        <button class="btn-close" onclick="closeZipModal()">Annuler</button>
-        <button class="btn-download" onclick="closeZipModal(); (${onConfirm.toString()})()">📦 Générer le ZIP</button>
-      </div>
-    </div>
-  `;
+  const statusHtml = done < total
+    ? '<br><span style="color:var(--warning);">⚠️ Certaines tâches ne sont pas encore cochées.</span>'
+    : '<br><span style="color:var(--success);">✅ Toutes les tâches sont terminées !</span>';
+
+  modal.innerHTML = [
+    '<div class="zip-modal-content">',
+    '  <h3 class="zip-modal-title">📦 Générer le livrable final</h3>',
+    '  <p class="zip-modal-sub">',
+    '    Avancement actuel : <strong>' + done + '/' + total + '</strong> tâches (' + pct + '%)',
+    '    ' + statusHtml,
+    '  </p>',
+    '  <div style="background:rgba(37,99,235,.05);border-radius:8px;padding:.9rem;margin-bottom:1.25rem;font-size:.82rem;line-height:1.5;">',
+    '    Le ZIP contiendra tous les modèles (.md, .html, .json, .txt, .xml) organisés par catégorie, plus les rapports d\'avancement et d\'historique.',
+    '  </div>',
+    '  <div class="zip-final-actions">',
+    '    <button class="btn-close" onclick="closeZipModal()">Annuler</button>',
+    '    <button class="btn-download" onclick="closeZipModal(); runZipGenerationFromUI()">📦 Générer le ZIP</button>',
+    '  </div>',
+    '</div>'
+  ].join('\n');
+
   document.body.appendChild(modal);
+}
+
+function runZipGenerationFromUI(){
+  const state = {};
+  document.querySelectorAll('.task-row').forEach(row=>{
+    const id = row.getAttribute('data-id');
+    const cb = row.querySelector('.task-cb');
+    const sel = row.querySelector('.task-assignee');
+    state[id] = {checked: cb?cb.checked:false, assignee: sel?sel.value:''};
+  });
+  runZipGeneration(state);
 }
 function closeZipModal(){
   const m = document.getElementById('zip-modal');
