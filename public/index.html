@@ -613,6 +613,30 @@ tbody tr:last-child td{border-bottom:none;}
   .zip-progress-list{font-size:.72rem;max-height:200px;}
 }
 
+
+/* Bouton retour en haut */
+#back-to-top{
+  position:fixed;bottom:5rem;right:1.25rem;z-index:900;
+  width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;font-weight:800;
+  box-shadow:0 6px 20px -4px var(--accent-glow), 0 2px 6px rgba(0,0,0,.15);
+  opacity:0;pointer-events:none;transform:translateY(15px) scale(.9);
+  transition:opacity .25s ease, transform .25s cubic-bezier(.16,1,.3,1), filter .15s;
+}
+#back-to-top.visible{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);}
+#back-to-top:hover{filter:brightness(1.1);transform:translateY(-2px) scale(1.05);}
+#back-to-top:active{transform:translateY(0) scale(.98);}
+
+/* Position ajustée pour ne pas chevaucher les toasts sur mobile */
+@media (max-width:700px){
+  #back-to-top{width:44px;height:44px;bottom:1.25rem;right:1rem;font-size:1.15rem;}
+  /* Décale les toasts pour qu'ils ne soient pas masqués */
+  #toast-container{bottom:5.5rem;}
+}
+
 </style>
 </head>
 <body>
@@ -796,6 +820,8 @@ tbody tr:last-child td{border-bottom:none;}
   <p style="font-size:.8rem;color:var(--muted);">50 dernières actions (local + serveur).</p>
   <div id="audit-list"></div>
 </div>
+
+<button id="back-to-top" onclick="scrollToTop()" title="Retour en haut" aria-label="Retour en haut">↑</button>
 
 <div id="toast-container"></div>
 
@@ -2099,9 +2125,12 @@ function updateAllUsageBadges(){
 function loadJSZip(cb){
   if(window.JSZip){ cb(); return; }
   const s = document.createElement('script');
-  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+  s.src = '/vendor/jszip.min.js';   // ← servi en local depuis public/vendor/
   s.onload = cb;
-  s.onerror = () => showToast('Erreur chargement JSZip', 'error');
+  s.onerror = () => {
+    showToast('Erreur chargement JSZip local', 'error');
+    console.error('JSZip introuvable : vérifiez public/vendor/jszip.min.js');
+  };
   document.head.appendChild(s);
 }
 
@@ -2421,6 +2450,20 @@ function runZipGeneration(state){
 // Variable globale pour le README (parsed depuis le source)
 let html_source = '';
 
+
+/* ---------- BOUTON RETOUR EN HAUT ---------- */
+function scrollToTop(){
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function updateBackToTopVisibility(){
+  const btn = document.getElementById('back-to-top');
+  if(!btn) return;
+  if(window.scrollY > 400) btn.classList.add('visible');
+  else btn.classList.remove('visible');
+}
+window.addEventListener('scroll', updateBackToTopVisibility, {passive:true});
+document.addEventListener('DOMContentLoaded', updateBackToTopVisibility);
+
 /* ---------- RACCOURCIS ---------- */
 function setupKeyboardShortcuts(){
   document.addEventListener('keydown', e=>{
@@ -2432,6 +2475,11 @@ function setupKeyboardShortcuts(){
     if(e.key==='Escape'){
       document.querySelectorAll('.expand-content').forEach(el=>el.style.display='none');
       document.getElementById('audit-panel').classList.remove('open');
+    }
+    // Touche "Home" : remonter en haut (sauf si focus dans un champ)
+    if(e.key==='Home' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)){
+      e.preventDefault();
+      scrollToTop();
     }
   });
 }
