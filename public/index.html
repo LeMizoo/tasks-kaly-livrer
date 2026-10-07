@@ -297,6 +297,26 @@ th{background:rgba(0,0,0,.03);font-size:.75rem;font-weight:700;text-transform:up
 }
 
 
+
+/* Chip prénom — visible partout (desktop ET mobile) */
+.assignee-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  margin-top: 0.35rem;
+  background: #e0e7ff;
+  color: #3730a3;
+}
+.assignee-chip.empty { background: #fee2e2; color: #991b1b; }
+
+@media (max-width: 700px) {
+  .assignee-chip { font-size: 0.75rem; padding: 0.3rem 0.65rem; margin-bottom: 0.35rem; }
+  .card tr.task-row td:nth-child(5) select { display: none; }
+  .card tr.task-row td:nth-child(5)::before { content: "👤 Assigné : "; }
+}
+
 </style>
 </head>
 <body>
@@ -398,6 +418,7 @@ th{background:rgba(0,0,0,.03);font-size:.75rem;font-weight:700;text-transform:up
     <button onclick="expandAll()">📖 Tout déplier</button>
     <button onclick="collapseAll()">📕 Tout replier</button>
     <button onclick="toggleAuditPanel()">🕓 Historique</button>
+    <button onclick="refreshData()" title="Actualiser les données">🔄 Actualiser</button>
     <button onclick="exportJSON()">💾 JSON</button>
     <button onclick="exportCSV()">📊 CSV</button>
     <button onclick="document.getElementById('import-file').click()">📥 Import</button>
@@ -556,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
   tryFetchSystemUsers();
   renderAllRows();
   setupKeyboardShortcuts();
+  tryRestoreSession();
 });
 
 function tryFetchSystemUsers(){
@@ -657,10 +679,13 @@ function renderRow(t){
         <input type="date" value="${deadline}" onchange="setDeadline('${t.id}',this.value)" style="margin:0;padding:.25rem .5rem;font-size:.75rem;width:auto;">
       </div>
     </td>
-    <td><select class="task-assignee" onchange="saveTasksState()">
-      <option value="">-- Choisir --</option>
-      ${['Eric','Miora','Tovo','Nanci','Safidy','Lioka'].map(u=>`<option value="${u}">${u}</option>`).join('')}
-    </select></td>
+    <td>
+      <span class="assignee-chip" id="chip-${t.id}">👤 —</span>
+      <select class="task-assignee" onchange="saveTasksState();updateAssigneeChip('${t.id}')">
+        <option value="">-- Choisir --</option>
+        ${['Eric','Miora','Tovo','Nanci','Safidy','Lioka'].map(u=>`<option value="${u}">${u}</option>`).join('')}
+      </select>
+    </td>
     <td style="text-align:center;">${t.time}</td>
   </tr>`;
 }
@@ -719,21 +744,86 @@ function showAuthError(msg){
   el.innerText = msg; el.classList.remove('hidden');
 }
 
-function loginSuccess(user){
+function loginSuccess(user, silent){
   currentUser = user;
+
+  // 💾 Persiste la session (30 min)
+  try{
+    localStorage.setItem('kaly-livrer-session-v3', JSON.stringify({
+      user: user,
+      expires: Date.now() + 30*60*1000
+    }));
+  }catch(e){}
+
   document.getElementById('auth-modal').classList.add('hidden');
   document.getElementById('main-content').classList.remove('disabled');
   document.getElementById('welcome-message').innerText = `👋 Bonjour ${user}, bonne session de travail !`;
   document.getElementById('welcome-banner').classList.remove('hidden');
   document.getElementById('current-session-user').innerText = `Session : ${user}`;
+
+  // ⏱️ Le bandeau disparaît après 4 s (sauf reprise silencieuse)
+  if(!silent){
+    clearTimeout(window.__welcomeTimeout);
+    window.__welcomeTimeout = setTimeout(()=>{
+      document.getElementById('welcome-banner').classList.add('hidden');
+    }, 4000);
+  }else{
+    document.getElementById('welcome-banner').classList.add('hidden');
+  }
+
   loadTasksState();
   renderAudit();
   updateAlertBadges();
-  showToast(`Bienvenue ${user} !`,'success');
+  if(!silent) showToast(`Bienvenue ${user} !`, 'success');
+}
+
+function tryRestoreSession(){
+  try{
+    const s = localStorage.getItem('kaly-livrer-session-v3');
+    if(!s) return false;
+    const data = JSON.parse(s);
+    if(data.expires && data.expires > Date.now() && systemUsers[data.user]){
+      loginSuccess(data.user, true);
+      return true;
+    }else{
+      localStorage.removeItem('kaly-livrer-session-v3');
+    }
+  }catch(e){}
+  return false;
+}
+
+function refreshData(){
+  showToast('🔄 Actualisation…', 'success');
+  loadMeta();
+  renderAllRows();
+  setTimeout(()=>{ loadTasksState(); renderAudit(); updateAlertBadges(); }, 100);
+}
+
+function updateAssigneeChip(taskId){
+  const row = document.getElementById('task-'+taskId);
+  if(!row) return;
+  const sel = row.querySelector('.task-assignee');
+  const chip = document.getElementById('chip-'+taskId);
+  if(!chip) return;
+  const val = sel ? sel.value : '';
+  if(val){
+    chip.textContent = '👤 ' + val;
+    chip.classList.remove('empty');
+  }else{
+    chip.textContent = '👤 — non assignée —';
+    chip.classList.add('empty');
+  }
+}
+
+function updateAllAssigneeChips(){
+  document.querySelectorAll('.task-row').forEach(row=>{
+    updateAssigneeChip(row.getAttribute('data-id'));
+  });
 }
 
 function logout(){
   currentUser = null;
+  try{ localStorage.removeItem('kaly-livrer-session-v3'); }catch(e){}
   document.getElementById('auth-modal').classList.remove('hidden');
   document.getElementById('main-content').classList.add('disabled');
   document.getElementById('welcome-banner').classList.add('hidden');
@@ -766,6 +856,7 @@ function applyStateToUI(state){
       if(sel) sel.value = d.assignee || '';
     }
   });
+  updateAllAssigneeChips();
   updateProgressUI(); updateStatsDashboard(); renderKanban(); updateAlertBadges();
 }
 
@@ -855,6 +946,7 @@ function rerenderTaskInline(id){
     const el = document.getElementById(pre+id);
     if(el) el.style.display = 'block';
   });
+  updateAssigneeChip(id);
   updateProgressUI(); updateStatsDashboard(); renderKanban();
 }
 
