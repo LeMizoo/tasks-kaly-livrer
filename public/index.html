@@ -565,6 +565,10 @@ document.addEventListener('DOMContentLoaded', () => {
   updateBackToTopVisibility();
   tryRestoreSession();
   applyDeadlinesFromData();
+  const auditPanel = document.getElementById('audit-panel');
+  if(auditPanel) auditPanel.classList.add('open');
+  renderAudit();
+  logAudit('ouverture de la page', 'SYSTÈME', currentUser ? 'Utilisateur : ' + currentUser : 'Visiteur anonyme');
 });
 
 function tryFetchSystemUsers(){
@@ -795,6 +799,7 @@ function loginSuccess(user, silent){
     document.getElementById('welcome-banner').classList.add('hidden');
   }
 
+  logAudit('connexion', 'SYSTÈME', user);
   loadTasksState();
   renderAudit();
   updateAlertBadges();
