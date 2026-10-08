@@ -15,6 +15,7 @@ const AUDIT_FILE = path.join(DATA_DIR, 'audit.json');
 const COMMENTS_FILE = path.join(DATA_DIR, 'comments.json');
 const META_FILE = path.join(DATA_DIR, 'meta.json');
 const TEMPLATES_FILE = path.join(DATA_DIR, 'templates.json');
+const ADDED_TASKS_FILE = path.join(DATA_DIR, 'added-tasks.json');
 
 function loadProjectConfig(filePath) {
     let config;
@@ -57,6 +58,10 @@ function loadProjectConfig(filePath) {
         !config.team.members.length || config.team.members.some(member => !isText(member)) ||
         new Set(config.team.members).size !== config.team.members.length) {
         fail('team doit fournir un libellé et des membres uniques.');
+    }
+    if (config.taskCreator !== undefined &&
+        (typeof config.taskCreator !== 'string' || !config.team.members.includes(config.taskCreator))) {
+        fail('taskCreator doit désigner un membre défini dans team.members.');
     }
     if (!Array.isArray(config.sections) || !config.sections.length) fail('au moins une section est requise.');
     const sectionIds = new Set();
@@ -107,8 +112,6 @@ function loadProjectConfig(filePath) {
 
 const PROJECT_CONFIG = loadProjectConfig(CONFIG_FILE);
 const ALLOWED_USERS = PROJECT_CONFIG.team.members;
-const ALLOWED_TASK_IDS = new Set(PROJECT_CONFIG.tasks.map(task => task.id));
-const isValidTaskId = taskId => typeof taskId === 'string' && ALLOWED_TASK_IDS.has(taskId);
 const PRESENCE_TIMEOUT_MS = 90 * 1000;
 const BROADCAST_MESSAGE_TTL_MS = 10 * 60 * 1000;
 const activeSessions = new Map();
@@ -121,6 +124,21 @@ if (!fs.existsSync(AUDIT_FILE)) fs.writeFileSync(AUDIT_FILE, JSON.stringify([]))
 if (!fs.existsSync(COMMENTS_FILE)) fs.writeFileSync(COMMENTS_FILE, JSON.stringify({}));
 if (!fs.existsSync(META_FILE)) fs.writeFileSync(META_FILE, JSON.stringify({ subtasks: {}, deadlines: {} }));
 if (!fs.existsSync(TEMPLATES_FILE)) fs.writeFileSync(TEMPLATES_FILE, JSON.stringify({}));
+if (!fs.existsSync(ADDED_TASKS_FILE)) fs.writeFileSync(ADDED_TASKS_FILE, JSON.stringify([]));
+
+const addedTasks = JSON.parse(fs.readFileSync(ADDED_TASKS_FILE, 'utf8') || '[]');
+if (!Array.isArray(addedTasks) || addedTasks.some(task =>
+    !task || typeof task.id !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,49}$/.test(task.id) ||
+    typeof task.title !== 'string' || !task.title.trim() || typeof task.scope !== 'string' ||
+    !task.scope.trim() || typeof task.time !== 'string' || !task.time.trim() ||
+    typeof task.detail !== 'string' || !PROJECT_CONFIG.sections.some(section => section.id === task.section) ||
+    !PROJECT_CONFIG.priorities.some(priority => priority.id === task.priority)
+) || addedTasks.some(task => PROJECT_CONFIG.tasks.some(configured => configured.id === task.id)) ||
+    new Set(addedTasks.map(task => task.id)).size !== addedTasks.length) {
+    throw new Error(`Données de tâches ajoutées invalides dans ${ADDED_TASKS_FILE}`);
+}
+const ALLOWED_TASK_IDS = new Set(PROJECT_CONFIG.tasks.concat(addedTasks).map(task => task.id));
+const isValidTaskId = taskId => typeof taskId === 'string' && ALLOWED_TASK_IDS.has(taskId);
 
 app.use(cors());
 app.use(express.json());
@@ -131,7 +149,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.get('/api/config', (req, res) => {
-    res.json(PROJECT_CONFIG);
+    res.json({ ...PROJECT_CONFIG, tasks: PROJECT_CONFIG.tasks.concat(addedTasks) });
 });
 
 function getActiveUsers() {
@@ -291,6 +309,53 @@ app.post('/api/tasks', (req, res) => {
     } catch (err) {
         console.error("Erreur d'écriture des tâches:", err);
         res.status(500).json({ error: "Erreur d'écriture" });
+    }
+});
+
+app.post('/api/tasks/create', (req, res) => {
+    const body = req.body || {};
+    const { user, pin, title, section, priority, scope, time, detail, team } = body;
+    if (!PROJECT_CONFIG.taskCreator || user !== PROJECT_CONFIG.taskCreator ||
+        typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
+        return res.status(403).json({ error: "Seul le responsable autorisé peut ajouter une tâche." });
+    }
+
+    try {
+        const users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8') || '{}');
+        if (!users || users[user] !== pin) {
+            return res.status(403).json({ error: "Code PIN incorrect." });
+        }
+        if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 ||
+            typeof section !== 'string' || !PROJECT_CONFIG.sections.some(item => item.id === section) ||
+            typeof priority !== 'string' || !PROJECT_CONFIG.priorities.some(item => item.id === priority) ||
+            typeof scope !== 'string' || !scope.trim() || scope.trim().length > 500 ||
+            typeof time !== 'string' || !time.trim() || time.trim().length > 50 ||
+            typeof detail !== 'string' || detail.length > 5000 ||
+            (team !== undefined && (typeof team !== 'string' || team.length > 200))) {
+            return res.status(400).json({ error: "Données de la tâche invalides." });
+        }
+        if (PROJECT_CONFIG.tasks.length + addedTasks.length >= 1000) {
+            return res.status(409).json({ error: "La limite de 1000 tâches pour ce projet est atteinte." });
+        }
+
+        const task = {
+            id: `TASK-${crypto.randomUUID()}`,
+            section,
+            priority,
+            title: title.trim(),
+            scope: scope.trim(),
+            time: time.trim(),
+            detail,
+            team: typeof team === 'string' ? team.trim() : ''
+        };
+        const nextTasks = addedTasks.concat(task);
+        fs.writeFileSync(ADDED_TASKS_FILE, JSON.stringify(nextTasks, null, 2));
+        addedTasks.push(task);
+        ALLOWED_TASK_IDS.add(task.id);
+        res.status(201).json({ task });
+    } catch (err) {
+        console.error("Erreur d'ajout de tâche:", err);
+        res.status(500).json({ error: "Impossible d'enregistrer la tâche." });
     }
 });
 
@@ -492,15 +557,23 @@ app.post('/api/audit', (req, res) => {
 });
 
 app.get('/api/users', (req, res) => {
-    fs.readFile(USERS_FILE, 'utf8', (err, data) => {
-        res.json(err ? {} : JSON.parse(data || '{}'));
-    });
+    try {
+        const users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8') || '{}');
+        if (!users || typeof users !== 'object' || Array.isArray(users)) throw new Error('Invalid user data');
+        res.json({ users: Object.fromEntries(ALLOWED_USERS.map(user => [user, Boolean(users[user])])) });
+    } catch (err) {
+        console.error('Erreur de lecture des profils utilisateur:', err);
+        res.status(500).json({ error: "Erreur de lecture des profils utilisateur" });
+    }
 });
 
 app.post('/api/auth/setup', (req, res) => {
-    const { user, pin } = req.body;
-    if (ALLOWED_USERS.includes(user) && pin && pin.length === 4 && /^\d+$/.test(pin)) {
+    const { user, pin } = req.body || {};
+    if (ALLOWED_USERS.includes(user) && typeof pin === 'string' && /^\d{4}$/.test(pin)) {
         const users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8') || '{}');
+        if (users[user]) {
+            return res.status(409).json({ error: "Ce profil existe déjà. Connectez-vous avec votre code PIN." });
+        }
         users[user] = pin;
         fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
         return res.json({ status: "ok" });
@@ -509,7 +582,10 @@ app.post('/api/auth/setup', (req, res) => {
 });
 
 app.post('/api/auth/verify', (req, res) => {
-    const { user, pin } = req.body;
+    const { user, pin } = req.body || {};
+    if (!ALLOWED_USERS.includes(user) || typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
+        return res.status(400).json({ error: "Données invalides" });
+    }
     const users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8') || '{}');
     if (users[user] === pin) {
         return res.json({ status: "ok" });

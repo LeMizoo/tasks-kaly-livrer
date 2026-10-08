@@ -54,6 +54,61 @@ test('persists task states for configured task and team IDs', async () => {
     assert.deepEqual(tasks[taskId], { checked: true, assignee });
 });
 
+test('only the configured task creator can add persistent tasks', async () => {
+    const setup = await fetch(`${baseUrl}/api/auth/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: 'Tovo', pin: '1234' })
+    });
+    assert.equal(setup.status, 200);
+    const profileStatus = await (await fetch(`${baseUrl}/api/users`)).json();
+    assert.equal(profileStatus.users.Tovo, true);
+    assert.equal(Object.hasOwn(profileStatus, 'Tovo'), false);
+
+    const overwritePin = await fetch(`${baseUrl}/api/auth/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: 'Tovo', pin: '0000' })
+    });
+    assert.equal(overwritePin.status, 409);
+
+    const task = {
+        title: 'Tâche ajoutée par le responsable',
+        section: 'po',
+        priority: 'P1',
+        scope: 'Validation de la nouvelle tâche.',
+        time: '1 jour',
+        detail: 'Description',
+        team: 'Tovo'
+    };
+    const forbidden = await fetch(`${baseUrl}/api/tasks/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...task, user: 'Nancy', pin: '1234' })
+    });
+    assert.equal(forbidden.status, 403);
+
+    const wrongPin = await fetch(`${baseUrl}/api/tasks/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...task, user: 'Tovo', pin: '0000' })
+    });
+    assert.equal(wrongPin.status, 403);
+
+    const created = await fetch(`${baseUrl}/api/tasks/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...task, user: 'Tovo', pin: '1234' })
+    });
+    assert.equal(created.status, 201);
+    const { task: savedTask } = await created.json();
+    assert.match(savedTask.id, /^TASK-/);
+
+    const config = await (await fetch(`${baseUrl}/api/config`)).json();
+    assert.equal(config.tasks.length, 23);
+    assert.equal(config.tasks.at(-1).id, savedTask.id);
+});
+
 test('rejects task IDs that are not present in the project configuration', async () => {
     const response = await fetch(`${baseUrl}/api/templates`, {
         method: 'POST',

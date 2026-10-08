@@ -14,6 +14,7 @@
     "label": "Membre de l’équipe",
     "members": ["Alex", "Sam"]
   },
+  "taskCreator": "Alex",
   "sections": [
     {
       "id": "delivery",

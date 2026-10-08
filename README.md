@@ -24,6 +24,10 @@ Chaque déploiement indépendant doit utiliser son propre `DATA_DIR` persistant 
 
 Les membres déclarés dans `team.members` peuvent créer leur code PIN lors de leur première connexion. Les tâches déjà sauvegardées restent intactes lorsqu’on modifie la configuration ; les identifiants retirés de celle-ci ne sont simplement plus affichés ni acceptés pour de nouvelles modifications.
 
+Par défaut, `taskCreator` désigne la seule personne autorisée à créer des tâches (Tovo dans la configuration Kaly, Alex dans l’exemple). L’interface n’affiche le bouton d’ajout qu’à ce membre ; le serveur vérifie aussi son identité et son code PIN. Les tâches ajoutées sont conservées dans `data/added-tasks.json` et partagées à tous les utilisateurs. Sans `taskCreator`, l’ajout est désactivé.
+
+Le bouton « Se connecter / Se déconnecter » reste disponible en haut à droite. La connexion ouvre le formulaire d’accès ; la déconnexion ferme la session et retire le membre de la liste des utilisateurs connectés.
+
 ## Historique partagé
 
 L’application affiche les 8 actions récentes au-dessus du tableau et jusqu’aux 50 dernières dans l’historique en bas de page. Les événements d’accès, de connexion et les actions sur les tâches sont partagés via `/api/audit` et stockés dans `data/audit.json` (ou dans le répertoire défini par `DATA_DIR`). Le répertoire de données doit être persistant sur l’hébergeur pour conserver l’historique après un redémarrage.
@@ -38,7 +42,7 @@ Le bouton « Message aux connectés », près du badge, diffuse une notification
 
 L’état des tâches (avancement et affectations), les sous-tâches, les échéances et les commentaires sont partagés entre les navigateurs et enregistrés sur le serveur. Les modifications sont sauvegardées immédiatement; les pages ouvertes récupèrent les changements des autres utilisateurs toutes les 10 secondes. L’historique partagé enregistre également les actions.
 
-Les données sont conservées dans `data/tasks.json`, `data/meta.json`, `data/comments.json` et `data/audit.json`, ou dans le répertoire défini par `DATA_DIR`. Au premier chargement, les commentaires, sous-tâches, échéances et états de tâches existants dans le stockage local du navigateur sont transférés vers le serveur. Le répertoire de données de l’hébergement doit être persistant pour conserver les modifications après un redémarrage. Si le serveur est indisponible, les modifications restent dans le navigateur et l’application affiche un avertissement de synchronisation.
+Les données sont conservées dans `data/tasks.json`, `data/added-tasks.json`, `data/users.json`, `data/meta.json`, `data/comments.json`, `data/templates.json` et `data/audit.json`, ou dans le répertoire défini par `DATA_DIR`. Au premier chargement, les commentaires, sous-tâches, échéances et états de tâches existants dans le stockage local du navigateur sont transférés vers le serveur. Le répertoire de données de l’hébergement doit être persistant pour conserver les modifications après un redémarrage. Si le serveur est indisponible, les modifications restent dans le navigateur et l’application affiche un avertissement de synchronisation.
 
 Les modèles prêts à copier peuvent être modifiés dans leur éditeur, copiés ou téléchargés. Ils sont sauvegardés et partagés via `/api/templates` dans `data/templates.json`; le bouton du modèle devient orange et porte la mention « modifié » lorsque son contenu diffère du modèle initial.
 
