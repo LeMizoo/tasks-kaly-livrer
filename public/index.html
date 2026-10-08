@@ -3,47 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>Feuille de Route & Dispatching — Kaly Livrer</title>
 <style>
 :root{
-  --bg:#f6f8fb;
-  --bg-gradient-1:#eef2f7;
-  --bg-gradient-2:#f9fafb;
-  --card-bg:#ffffff;
-  --primary:#0b1220;
-  --primary-soft:#1e293b;
-  --accent:#e07a1f;
-  --accent-2:#f59e0b;
-  --accent-glow:rgba(224,122,31,.25);
-  --border:#e6eaf0;
-  --border-strong:#d3dae3;
-  --text:#1f2937;
-  --muted:#6b7280;
-  --success:#059669;
-  --success-bg:#ecfdf5;
-  --danger:#dc2626;
-  --danger-bg:#fef2f2;
-  --info:#2563eb;
-  --warning:#d97706;
+  --bg:#f6f8fb;--bg-gradient-1:#eef2f7;--bg-gradient-2:#f9fafb;
+  --card-bg:#ffffff;--primary:#0b1220;--primary-soft:#1e293b;
+  --accent:#e07a1f;--accent-2:#f59e0b;--accent-glow:rgba(224,122,31,.25);
+  --border:#e6eaf0;--border-strong:#d3dae3;--text:#1f2937;--muted:#6b7280;
+  --success:#059669;--success-bg:#ecfdf5;--danger:#dc2626;--danger-bg:#fef2f2;
+  --info:#2563eb;--warning:#d97706;
   --shadow-sm:0 1px 2px rgba(15,23,42,.05);
-  --shadow-md:0 4px 12px -2px rgba(15,23,42,.08), 0 2px 4px -2px rgba(15,23,42,.04);
-  --shadow-lg:0 12px 24px -6px rgba(15,23,42,.12), 0 4px 8px -4px rgba(15,23,42,.06);
-  --radius:14px;
-  --radius-sm:10px;
-  --radius-lg:20px;
+  --shadow-md:0 4px 12px -2px rgba(15,23,42,.08),0 2px 4px -2px rgba(15,23,42,.04);
+  --shadow-lg:0 12px 24px -6px rgba(15,23,42,.12),0 4px 8px -4px rgba(15,23,42,.06);
+  --radius:14px;--radius-sm:10px;--radius-lg:20px;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#0b1220;
-    --bg-gradient-1:#0f172a;
-    --bg-gradient-2:#0b1220;
-    --card-bg:#111c2e;
-    --primary:#f8fafc;
-    --primary-soft:#e2e8f0;
-    --border:#1e293b;
-    --border-strong:#334155;
-    --text:#e2e8f0;
-    --muted:#94a3b8;
+    --bg:#0b1220;--bg-gradient-1:#0f172a;--bg-gradient-2:#0b1220;
+    --card-bg:#111c2e;--primary:#f8fafc;--primary-soft:#e2e8f0;
+    --border:#1e293b;--border-strong:#334155;--text:#e2e8f0;--muted:#94a3b8;
     --shadow-sm:0 1px 2px rgba(0,0,0,.4);
     --shadow-md:0 4px 12px -2px rgba(0,0,0,.5);
     --shadow-lg:0 12px 24px -6px rgba(0,0,0,.6);
@@ -54,29 +33,23 @@ html,body{margin:0;padding:0;}
 body{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   background:linear-gradient(180deg,var(--bg-gradient-1) 0%,var(--bg) 40%,var(--bg-gradient-2) 100%);
-  background-attachment:fixed;
-  color:var(--text);
-  padding:1rem 1.25rem 4rem;
-  line-height:1.55;
-  -webkit-font-smoothing:antialiased;
-  min-height:100vh;
+  background-attachment:fixed;color:var(--text);
+  padding:1rem 1.25rem 4rem;line-height:1.55;
+  -webkit-font-smoothing:antialiased;min-height:100vh;
 }
 .container{max-width:1280px;margin:0 auto;}
 
-/* ---------- MODAL ---------- */
 .modal-backdrop{
   position:fixed;inset:0;
   background:radial-gradient(circle at 50% 50%,rgba(15,23,42,.75),rgba(15,23,42,.92));
-  backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;
-  z-index:1000;padding:1rem;
-  animation:fadeIn .25s ease;
+  backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
+  z-index:1000;padding:1rem;animation:fadeIn .25s ease;
 }
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 .modal{
   background:var(--card-bg);padding:2.25rem 2rem;border-radius:var(--radius-lg);
   max-width:440px;width:100%;
-  box-shadow:0 30px 60px -15px rgba(15,23,42,.4), 0 0 0 1px rgba(255,255,255,.05);
+  box-shadow:0 30px 60px -15px rgba(15,23,42,.4),0 0 0 1px rgba(255,255,255,.05);
   animation:slideUp .35s cubic-bezier(.16,1,.3,1);
 }
 @keyframes slideUp{from{opacity:0;transform:translateY(20px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
@@ -90,15 +63,12 @@ select,input[type="text"],input[type="password"],input[type="date"],textarea{
   margin-bottom:1rem;transition:border-color .15s,box-shadow .15s;
 }
 select:hover,input:hover,textarea:hover{border-color:var(--border-strong);}
-select:focus,input:focus,textarea:focus{
-  outline:none;border-color:var(--accent);
-  box-shadow:0 0 0 4px var(--accent-glow);
-}
+select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-glow);}
 button.btn-primary{
   width:100%;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);
   color:#fff;font-weight:700;border:none;padding:1rem;border-radius:var(--radius-sm);
   cursor:pointer;font-size:.95rem;letter-spacing:.01em;
-  box-shadow:0 4px 12px -2px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.2);
+  box-shadow:0 4px 12px -2px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,.2);
   transition:transform .1s,box-shadow .2s,filter .2s;
 }
 button.btn-primary:hover{filter:brightness(1.08);box-shadow:0 8px 20px -4px var(--accent-glow);}
@@ -106,222 +76,129 @@ button.btn-primary:active{transform:translateY(1px);}
 .error-msg{color:var(--danger);font-size:.82rem;font-weight:700;text-align:center;margin-top:.5rem;padding:.6rem;background:var(--danger-bg);border-radius:var(--radius-sm);}
 .instructions{background:#fef3c7;color:#92400e;padding:.85rem 1rem;border-radius:var(--radius-sm);font-size:.82rem;margin-bottom:1rem;border-left:3px solid #f59e0b;}
 
-/* ---------- HEADER ---------- */
 .sticky-top-container{
   position:sticky;top:0;z-index:100;
   background:linear-gradient(180deg,var(--bg) 70%,transparent);
-  padding:.75rem 0 1rem;
-  margin:-.5rem 0 0;
+  padding:.75rem 0 1rem;margin:-.5rem 0 0;
 }
 header{
   background:var(--card-bg);padding:1.5rem 1.75rem;border-radius:var(--radius);
-  border:1px solid var(--border);
-  box-shadow:var(--shadow-md);
+  border:1px solid var(--border);box-shadow:var(--shadow-md);
   position:relative;overflow:hidden;
 }
 header::before{
   content:"";position:absolute;top:0;left:0;right:0;height:4px;
   background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) 50%,var(--accent) 100%);
-  background-size:200% 100%;
-  animation:slideGradient 4s linear infinite;
+  background-size:200% 100%;animation:slideGradient 4s linear infinite;
 }
 @keyframes slideGradient{from{background-position:0% 0;}to{background-position:200% 0;}}
 .welcome-banner{
-  background:linear-gradient(135deg,#ecfdf5,#d1fae5);
-  border:1px solid #a7f3d0;color:#065f46;
-  padding:.75rem 1rem;border-radius:var(--radius-sm);
+  background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1px solid #a7f3d0;
+  color:#065f46;padding:.75rem 1rem;border-radius:var(--radius-sm);
   font-size:.85rem;font-weight:700;margin-bottom:.75rem;
   display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;
   animation:slideDown .4s cubic-bezier(.16,1,.3,1);
 }
 @keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
 .progress-bg{background:var(--border);height:10px;border-radius:6px;overflow:hidden;margin-top:.6rem;box-shadow:inset 0 1px 2px rgba(0,0,0,.05);}
-.progress-fill{
-  background:linear-gradient(90deg,var(--accent),var(--accent-2));
-  height:100%;width:0%;transition:width .6s cubic-bezier(.16,1,.3,1);
-  border-radius:6px;box-shadow:0 0 12px var(--accent-glow);
-}
+.progress-fill{background:linear-gradient(90deg,var(--accent),var(--accent-2));height:100%;width:0%;transition:width .6s cubic-bezier(.16,1,.3,1);border-radius:6px;box-shadow:0 0 12px var(--accent-glow);}
 
-/* BADGES ALERTES HEADER */
 .alert-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:800;padding:.3rem .7rem;border-radius:20px;margin-left:.3rem;letter-spacing:.02em;}
 .alert-badge.danger{background:var(--danger-bg);color:var(--danger);animation:pulse 2s ease-in-out infinite;}
 .alert-badge.warning{background:#fef3c7;color:#92400e;}
 .alert-badge.success{background:var(--success-bg);color:var(--success);}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.7;}}
 
-/* ---------- TOOLBAR ---------- */
 .toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.25rem 0;align-items:center;}
 .toolbar input,.toolbar select{
-  margin:0;padding:.65rem .9rem;font-size:.88rem;
-  width:auto;min-width:150px;flex:1 1 auto;border-radius:var(--radius-sm);
-  border:1.5px solid var(--border);background:var(--card-bg);color:var(--text);
-  transition:border-color .15s,box-shadow .15s;
+  margin:0;padding:.65rem .9rem;font-size:.88rem;width:auto;min-width:150px;flex:1 1 auto;
+  border-radius:var(--radius-sm);border:1.5px solid var(--border);
+  background:var(--card-bg);color:var(--text);transition:border-color .15s,box-shadow .15s;
 }
 .toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
 .toolbar button{
-  background:var(--card-bg);border:1.5px solid var(--border);
-  color:var(--text);padding:.65rem 1rem;border-radius:var(--radius-sm);
-  cursor:pointer;font-size:.85rem;font-weight:600;
-  transition:all .15s;display:inline-flex;align-items:center;gap:.35rem;
+  background:var(--card-bg);border:1.5px solid var(--border);color:var(--text);
+  padding:.65rem 1rem;border-radius:var(--radius-sm);cursor:pointer;
+  font-size:.85rem;font-weight:600;transition:all .15s;
+  display:inline-flex;align-items:center;gap:.35rem;
 }
 .toolbar button:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 10px -2px var(--accent-glow);}
 .toolbar button.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-color:transparent;box-shadow:0 4px 10px -2px var(--accent-glow);}
 .toolbar button:active{transform:translateY(0);}
+.btn-generate{background:linear-gradient(135deg,#10b981,#059669) !important;color:#fff !important;border:none !important;font-weight:800 !important;box-shadow:0 4px 12px -2px rgba(16,185,129,.4) !important;}
+.btn-generate:hover{filter:brightness(1.08);}
 
-/* ---------- STATS ---------- */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.85rem;margin:1.25rem 0;}
-.stat-card{
-  background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);
-  padding:1.1rem 1.25rem;position:relative;overflow:hidden;
-  box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s;
-}
+.stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s;}
 .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
-.stat-card::after{
-  content:"";position:absolute;top:0;right:0;width:60px;height:60px;
-  background:radial-gradient(circle,var(--accent-glow),transparent 70%);
-  border-radius:50%;transform:translate(30%,-30%);
-}
+.stat-card::after{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle,var(--accent-glow),transparent 70%);border-radius:50%;transform:translate(30%,-30%);}
 .stat-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem;}
 .stat-value{font-size:1.75rem;font-weight:800;color:var(--primary);letter-spacing:-.03em;line-height:1;}
 .stat-sub{font-size:.75rem;color:var(--muted);margin-top:.3rem;}
 
-/* ---------- CARDS ---------- */
-.card{
-  background:var(--card-bg);border-radius:var(--radius);border:1px solid var(--border);
-  margin-bottom:1.5rem;overflow:hidden;box-shadow:var(--shadow-sm);
-  transition:box-shadow .2s;
-}
+.card{background:var(--card-bg);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:1.5rem;overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s;}
 .card:hover{box-shadow:var(--shadow-md);}
-.card-header{
-  padding:1.1rem 1.5rem;
-  background:linear-gradient(180deg,rgba(0,0,0,.015),rgba(0,0,0,0));
-  border-bottom:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
-}
+.card-header{padding:1.1rem 1.5rem;background:linear-gradient(180deg,rgba(0,0,0,.015),rgba(0,0,0,0));border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
 .card-title{font-weight:800;font-size:1.15rem;margin:0;color:var(--primary);letter-spacing:-.02em;}
-.card-count{
-  font-size:.75rem;font-weight:800;letter-spacing:.03em;
-  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
-  padding:.25rem .65rem;border-radius:20px;
-  box-shadow:0 2px 6px -1px var(--accent-glow);
-}
+.card-count{font-size:.75rem;font-weight:800;letter-spacing:.03em;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;padding:.25rem .65rem;border-radius:20px;box-shadow:0 2px 6px -1px var(--accent-glow);}
 
-/* ---------- TABLEAU ---------- */
 table{width:100%;border-collapse:collapse;text-align:left;font-size:.9rem;}
 th,td{padding:1rem 1.1rem;border-bottom:1px solid var(--border);vertical-align:top;}
-th{
-  background:linear-gradient(180deg,rgba(0,0,0,.025),rgba(0,0,0,.01));
-  font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
-  color:var(--muted);
-}
+th{background:linear-gradient(180deg,rgba(0,0,0,.025),rgba(0,0,0,.01));font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
 tbody tr{transition:background .15s;}
 tbody tr:hover:not(.completed-row){background:rgba(224,122,31,.03);}
 tbody tr:last-child td{border-bottom:none;}
 .completed-row{opacity:.55;background:rgba(5,150,105,.04);}
 .completed-row strong{text-decoration:line-through;}
 
-/* BADGES PRIORITÉ */
-.badge{
-  padding:.3rem .6rem;border-radius:6px;font-size:.7rem;font-weight:800;
-  color:#fff;letter-spacing:.03em;display:inline-block;
-  box-shadow:0 2px 6px -2px currentColor;
-}
+.badge{padding:.3rem .6rem;border-radius:6px;font-size:.7rem;font-weight:800;color:#fff;letter-spacing:.03em;display:inline-block;box-shadow:0 2px 6px -2px currentColor;}
 .badge-p0{background:linear-gradient(135deg,#ef4444,#dc2626);}
 .badge-p1{background:linear-gradient(135deg,#f59e0b,#d97706);}
 .badge-p2{background:linear-gradient(135deg,#3b82f6,#2563eb);}
 .badge-p3{background:linear-gradient(135deg,#10b981,#059669);}
 
-/* DEADLINE */
-.deadline-badge{
-  display:inline-block;font-size:.72rem;font-weight:700;
-  padding:.25rem .6rem;border-radius:20px;margin-top:.4rem;letter-spacing:.02em;
-}
+.deadline-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:20px;margin-top:.4rem;letter-spacing:.02em;}
 .deadline-late{background:var(--danger-bg);color:var(--danger);border:1px solid #fecaca;}
 .deadline-soon{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
 .deadline-ok{background:var(--success-bg);color:var(--success);border:1px solid #a7f3d0;}
 
-/* CHIP PRÉNOM */
-.assignee-chip{
-  display:inline-block;font-size:.72rem;font-weight:800;
-  padding:.25rem .65rem;border-radius:20px;margin-top:.35rem;
-  background:linear-gradient(135deg,#e0e7ff,#c7d2fe);color:#3730a3;
-  letter-spacing:.02em;box-shadow:0 1px 3px -1px rgba(55,48,163,.2);
-}
-.assignee-chip.empty{background:linear-gradient(135deg,#fee2e2,#fecaca);color:#991b1b;box-shadow:0 1px 3px -1px rgba(153,27,27,.2);}
+.assignee-chip{display:inline-block;font-size:.72rem;font-weight:800;padding:.25rem .65rem;border-radius:20px;margin-top:.35rem;background:linear-gradient(135deg,#e0e7ff,#c7d2fe);color:#3730a3;letter-spacing:.02em;box-shadow:0 1px 3px -1px rgba(55,48,163,.2);}
+.assignee-chip.empty{background:transparent;color:var(--muted);font-style:italic;font-weight:500;border:1px dashed var(--border-strong);box-shadow:none;}
 
-/* BOUTONS EXPAND */
-.expand-btn{
-  background:rgba(224,122,31,.08);border:none;color:var(--accent);
-  font-weight:700;font-size:.75rem;cursor:pointer;
-  padding:.4rem .7rem;border-radius:6px;margin-top:.4rem;margin-right:.3rem;
-  display:inline-block;transition:all .15s;letter-spacing:.02em;
-}
+.expand-btn{background:rgba(224,122,31,.08);border:none;color:var(--accent);font-weight:700;font-size:.75rem;cursor:pointer;padding:.4rem .7rem;border-radius:6px;margin-top:.4rem;margin-right:.3rem;display:inline-block;transition:all .15s;letter-spacing:.02em;}
 .expand-btn:hover{background:var(--accent);color:#fff;transform:translateY(-1px);}
-.expand-content{
-  background:linear-gradient(135deg,#0b1220,#1e293b);color:#fbbf24;
-  padding:1rem 1.1rem;border-radius:var(--radius-sm);
-  font-family:'SF Mono',Consolas,monospace;font-size:.75rem;
-  margin-top:.6rem;display:none;white-space:pre-wrap;word-break:break-word;
-  line-height:1.6;border:1px solid #1e293b;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
-}
+.expand-content{background:linear-gradient(135deg,#0b1220,#1e293b);color:#fbbf24;padding:1rem 1.1rem;border-radius:var(--radius-sm);font-family:'SF Mono',Consolas,monospace;font-size:.75rem;margin-top:.6rem;display:none;white-space:pre-wrap;word-break:break-word;line-height:1.6;border:1px solid #1e293b;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}
 
-/* SOUS-TÂCHES */
-.subtasks{
-  background:rgba(224,122,31,.04);border:1px dashed rgba(224,122,31,.3);
-  border-radius:var(--radius-sm);padding:.9rem;margin-top:.6rem;
-}
+.template-block{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;border-left:4px solid #0284c7;border-radius:var(--radius-sm);padding:.9rem 1rem;margin-top:.6rem;font-size:.82rem;line-height:1.55;color:#0c4a6e;}
+.template-block h6{margin:0 0 .5rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#0369a1;font-weight:800;}
+.template-block pre{background:#fff;border:1px solid #bae6fd;padding:.75rem;border-radius:6px;margin:.5rem 0 0;font-family:'SF Mono',Consolas,monospace;font-size:.75rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;color:#0f172a;max-height:280px;overflow:auto;}
+.template-block .tpl-actions{display:flex;gap:.4rem;margin-top:.5rem;flex-wrap:wrap;}
+.copy-btn{display:inline-flex;align-items:center;gap:.3rem;background:rgba(37,99,235,.08);color:#2563eb;border:none;font-weight:700;font-size:.72rem;padding:.35rem .7rem;border-radius:6px;cursor:pointer;margin-left:.3rem;transition:all .15s;}
+.copy-btn:hover{background:#2563eb;color:#fff;}
+.copy-btn.copied{background:var(--success);color:#fff;}
+
+.subtasks{background:rgba(224,122,31,.04);border:1px dashed rgba(224,122,31,.3);border-radius:var(--radius-sm);padding:.9rem;margin-top:.6rem;}
 .subtasks h5{margin:0 0 .6rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:800;}
 .subtask{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;font-size:.85rem;}
 .subtask input[type="checkbox"]{width:16px;height:16px;margin:0;flex-shrink:0;cursor:pointer;accent-color:var(--accent);}
 .subtask span.done{text-decoration:line-through;opacity:.55;}
 .subtask-add{display:flex;gap:.4rem;margin-top:.6rem;}
 .subtask-add input{flex:1;margin:0;padding:.5rem .7rem;font-size:.82rem;}
-.subtask-add button{
-  padding:.5rem .9rem;font-size:.82rem;
-  background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;
-  transition:filter .15s;
-}
-.subtask-add button:hover{filter:brightness(1.1);}
+.subtask-add button{padding:.5rem .9rem;font-size:.82rem;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;}
 
-/* COMMENTAIRES */
 .comments{margin-top:.6rem;}
-.comment{
-  background:var(--card-bg);border:1px solid var(--border);
-  border-radius:var(--radius-sm);padding:.65rem .85rem;margin-bottom:.5rem;font-size:.82rem;
-  box-shadow:var(--shadow-sm);
-}
+.comment{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .85rem;margin-bottom:.5rem;font-size:.82rem;box-shadow:var(--shadow-sm);}
 .comment-head{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);font-weight:700;margin-bottom:.3rem;letter-spacing:.02em;}
 .comment-body{color:var(--text);white-space:pre-wrap;line-height:1.5;}
 .comment-add{display:flex;gap:.4rem;margin-top:.6rem;}
 .comment-add textarea{flex:1;margin:0;padding:.6rem .8rem;font-size:.82rem;min-height:60px;resize:vertical;}
-.comment-add button{
-  padding:.6rem 1rem;font-size:.82rem;
-  background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;
-  transition:filter .15s;
-}
-.comment-add button:hover{filter:brightness(1.1);}
+.comment-add button{padding:.6rem 1rem;font-size:.82rem;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;}
 
-/* KANBAN */
 .kanban{display:none;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem;}
 .kanban.active{display:grid;animation:fadeIn .3s ease;}
-.kanban-col{
-  background:linear-gradient(180deg,var(--card-bg),rgba(0,0,0,.015));
-  border:1px solid var(--border);border-radius:var(--radius);
-  padding:1.1rem;min-height:200px;box-shadow:var(--shadow-sm);
-}
-.kanban-col h3{
-  margin:0 0 .9rem;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--muted);display:flex;justify-content:space-between;font-weight:800;
-}
-.kanban-card{
-  background:var(--card-bg);border:1px solid var(--border);border-left:4px solid var(--accent);
-  border-radius:var(--radius-sm);padding:.8rem .9rem;margin-bottom:.7rem;font-size:.85rem;
-  cursor:pointer;transition:transform .15s,box-shadow .15s;
-  box-shadow:var(--shadow-sm);
-}
+.kanban-col{background:linear-gradient(180deg,var(--card-bg),rgba(0,0,0,.015));border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;min-height:200px;box-shadow:var(--shadow-sm);}
+.kanban-col h3{margin:0 0 .9rem;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between;font-weight:800;}
+.kanban-card{background:var(--card-bg);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius-sm);padding:.8rem .9rem;margin-bottom:.7rem;font-size:.85rem;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:var(--shadow-sm);}
 .kanban-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
 .kanban-card.p0{border-left-color:#ef4444;}
 .kanban-card.p1{border-left-color:#f59e0b;}
@@ -330,13 +207,7 @@ tbody tr:last-child td{border-bottom:none;}
 .kanban-card strong{display:block;font-size:.88rem;margin-bottom:.3rem;color:var(--primary);letter-spacing:-.01em;}
 .kanban-card .meta{font-size:.72rem;color:var(--muted);margin-top:.4rem;letter-spacing:.02em;}
 
-/* AUDIT */
-.audit-panel{
-  position:fixed;top:0;right:-440px;width:420px;max-width:92vw;height:100vh;
-  background:var(--card-bg);border-left:1px solid var(--border);
-  box-shadow:-15px 0 30px -10px rgba(0,0,0,.2);
-  transition:right .35s cubic-bezier(.16,1,.3,1);z-index:500;overflow-y:auto;padding:1.5rem;
-}
+.audit-panel{position:fixed;top:0;right:-440px;width:420px;max-width:92vw;height:100vh;background:var(--card-bg);border-left:1px solid var(--border);box-shadow:-15px 0 30px -10px rgba(0,0,0,.2);transition:right .35s cubic-bezier(.16,1,.3,1);z-index:500;overflow-y:auto;padding:1.5rem;}
 .audit-panel.open{right:0;}
 .audit-panel h3{margin:0 0 1rem;color:var(--primary);letter-spacing:-.01em;}
 .audit-entry{font-size:.82rem;padding:.7rem 0;border-bottom:1px solid var(--border);}
@@ -346,134 +217,88 @@ tbody tr:last-child td{border-bottom:none;}
 .hidden{display:none !important;}
 .disabled{opacity:.2;pointer-events:none;}
 
-/* TOAST */
 #toast-container{position:fixed;bottom:1.25rem;right:1.25rem;z-index:2000;display:flex;flex-direction:column;gap:.6rem;max-width:340px;}
-.toast{
-  background:linear-gradient(135deg,var(--primary),var(--primary-soft));color:#fff;
-  padding:.85rem 1.1rem;border-radius:var(--radius-sm);
-  font-size:.85rem;font-weight:600;
-  box-shadow:0 15px 30px -8px rgba(0,0,0,.3);
-  animation:slideIn .35s cubic-bezier(.16,1,.3,1);
-  display:flex;align-items:center;gap:.5rem;
-  border-left:4px solid var(--accent);
-}
+.toast{background:linear-gradient(135deg,var(--primary),var(--primary-soft));color:#fff;padding:.85rem 1.1rem;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;box-shadow:0 15px 30px -8px rgba(0,0,0,.3);animation:slideIn .35s cubic-bezier(.16,1,.3,1);display:flex;align-items:center;gap:.5rem;border-left:4px solid var(--accent);}
 .toast.success{background:linear-gradient(135deg,#059669,#10b981);border-left-color:#a7f3d0;}
 .toast.error{background:linear-gradient(135deg,#dc2626,#ef4444);border-left-color:#fecaca;}
 @keyframes slideIn{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
 
-/* ============ RESPONSIVE MOBILE ============ */
-@media (max-width: 900px){
-  .kanban{grid-template-columns:1fr;}
-}
+.zip-modal{position:fixed;inset:0;background:rgba(15,23,42,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:3000;padding:1rem;animation:fadeIn .2s ease;}
+.zip-modal-content{background:var(--card-bg);border-radius:var(--radius-lg);padding:2rem;max-width:520px;width:100%;box-shadow:0 30px 60px -15px rgba(0,0,0,.4);animation:slideUp .3s cubic-bezier(.16,1,.3,1);}
+.zip-modal-title{font-size:1.25rem;font-weight:800;color:var(--primary);margin:0 0 .5rem;text-align:center;letter-spacing:-.01em;}
+.zip-modal-sub{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:1.5rem;}
+.zip-progress-list{max-height:280px;overflow-y:auto;background:rgba(0,0,0,.02);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-family:'SF Mono',Consolas,monospace;font-size:.78rem;border:1px solid var(--border);}
+.zip-progress-item{display:flex;align-items:center;gap:.5rem;padding:.25rem 0;color:var(--muted);}
+.zip-progress-item.done{color:var(--success);}
+.zip-progress-item.active{color:var(--accent);font-weight:700;}
+.zip-progress-item .icon{width:18px;text-align:center;}
 
+#back-to-top{position:fixed;bottom:5rem;right:1.25rem;z-index:900;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;box-shadow:0 6px 20px -4px var(--accent-glow),0 2px 6px rgba(0,0,0,.15);opacity:0;pointer-events:none;transform:translateY(15px) scale(.9);transition:opacity .25s ease,transform .25s cubic-bezier(.16,1,.3,1),filter .15s;}
+#back-to-top.visible{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);}
+#back-to-top:hover{filter:brightness(1.1);transform:translateY(-2px) scale(1.05);}
+
+@media (max-width: 900px){.kanban{grid-template-columns:1fr;}}
 @media (max-width: 700px){
   body{padding:.75rem .75rem 4rem;}
   header{padding:1.1rem 1.15rem;}
   header h1{font-size:1.15rem !important;line-height:1.3;}
   header p{font-size:.78rem !important;}
   .sticky-top-container{padding-top:.35rem;}
-
-  /* Stats : 2 colonnes */
   .stats-grid{grid-template-columns:repeat(2,1fr);gap:.6rem;}
   .stat-card{padding:.75rem .85rem;}
   .stat-value{font-size:1.35rem;}
   .stat-label{font-size:.65rem;}
   .stat-sub{font-size:.7rem;}
-
-  /* Toolbar */
   .toolbar{gap:.4rem;}
   .toolbar input,.toolbar select{min-width:100%;flex:1 1 100%;font-size:.85rem;padding:.6rem .8rem;}
   .toolbar button{flex:1 1 calc(50% - .2rem);padding:.6rem .5rem;font-size:.8rem;justify-content:center;}
-
-  /* TABLEAU → CARTES EMPILÉES */
   .card table,.card thead,.card tbody,.card th,.card td,.card tr{display:block;width:100%;}
   .card thead{display:none;}
-
-  .card tr.task-row{
-    background:var(--card-bg);
-    border:1px solid var(--border);
-    border-left:4px solid var(--accent);
-    border-radius:var(--radius);
-    margin-bottom:.85rem;
-    padding:.9rem;
-    box-shadow:var(--shadow-sm);
-  }
+  .card tr.task-row{background:var(--card-bg);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius);margin-bottom:.85rem;padding:.9rem;box-shadow:var(--shadow-sm);}
   .card tr.task-row[data-priority="P0"]{border-left-color:#ef4444;}
   .card tr.task-row[data-priority="P1"]{border-left-color:#f59e0b;}
   .card tr.task-row[data-priority="P2"]{border-left-color:#3b82f6;}
   .card tr.task-row[data-priority="P3"]{border-left-color:#10b981;}
-
   .card tr.task-row td{border:none;padding:.35rem 0;text-align:left !important;}
-
-  /* Ligne 1 : checkbox + ID + priorité */
   .card tr.task-row td:nth-child(1){display:inline-block;width:auto;padding-right:.5rem;vertical-align:middle;}
-  .card tr.task-row td:nth-child(1) input{transform:scale(1.5);cursor:pointer;accent-color:var(--accent);}
-  .card tr.task-row td:nth-child(2){display:inline-block;width:auto;padding-right:.5rem;vertical-align:middle;}
-  .card tr.task-row td:nth-child(2) strong{font-size:.85rem;color:var(--muted);letter-spacing:.02em;}
-  .card tr.task-row td:nth-child(3){display:inline-block;width:auto;vertical-align:middle;}
-
-  /* Contenu principal */
-  .card tr.task-row td:nth-child(4){
-    display:block;padding-top:.6rem;padding-bottom:.6rem;
-    border-top:1px solid var(--border);margin-top:.4rem;
-  }
-  .card tr.task-row td:nth-child(4) > strong{font-size:1rem;display:block;margin-bottom:.3rem;color:var(--primary);}
-
-  /* Assignation : chip bien visible */
-  .card tr.task-row td:nth-child(5){
-    display:block;padding-top:.6rem;border-top:1px dashed var(--border);
-  }
-  .card tr.task-row td:nth-child(5)::before{
-    content:"👤 Assigné à";display:block;font-size:.7rem;font-weight:800;
-    text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.35rem;
-  }
-  .card tr.task-row td:nth-child(5) select{display:none;}
-
-  /* Temps masqué (déjà dans les chips) */
-  .card tr.task-row td:nth-child(6){display:none;}
-
-  /* Boutons action */
-  .expand-btn{
-    display:block;width:100%;padding:.6rem;margin:.35rem 0 0;
-    background:rgba(224,122,31,.08);border-radius:var(--radius-sm);
-    text-align:center;font-size:.82rem;
-  }
+  .card tr.task-row td:nth-child(1) strong{font-size:.85rem;color:var(--muted);letter-spacing:.02em;}
+  .card tr.task-row td:nth-child(2){display:inline-block;width:auto;vertical-align:middle;}
+  .card tr.task-row td:nth-child(2) .badge{display:inline-block;}
+  .card tr.task-row td:nth-child(3){display:block;padding-top:.6rem;padding-bottom:.6rem;border-top:1px solid var(--border);margin-top:.4rem;}
+  .card tr.task-row td:nth-child(3) > strong{font-size:1rem;display:block;margin-bottom:.3rem;color:var(--primary);}
+  .card tr.task-row td:nth-child(4){display:block;padding-top:.6rem;border-top:1px dashed var(--border);}
+  .card tr.task-row td:nth-child(4)::before{content:"👤 Assigné à";display:block;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.35rem;}
+  .card tr.task-row td:nth-child(4) select{display:none;}
+  .card tr.task-row td:nth-child(5){display:block;padding-top:.6rem;border-top:1px dashed var(--border);text-align:center;}
+  .card tr.task-row td:nth-child(5)::before{content:"⏱ Temps";display:block;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.35rem;}
+  .card tr.task-row td:nth-child(6){display:flex;justify-content:center;align-items:center;padding-top:.6rem;border-top:1px dashed var(--border);}
+  .card tr.task-row td:nth-child(6)::before{content:"✅ Fait";display:block;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:.5rem;}
+  .card tr.task-row td:nth-child(6) input{transform:scale(1.5);cursor:pointer;accent-color:var(--accent);}
+  .expand-btn{display:block;width:100%;padding:.6rem;margin:.35rem 0 0;background:rgba(224,122,31,.08);border-radius:var(--radius-sm);text-align:center;font-size:.82rem;}
   .expand-btn + .expand-btn{margin-top:.35rem;}
-
-  /* Sous-tâches & commentaires */
   .subtask{font-size:.88rem;padding:.45rem 0;}
   .subtask input[type="checkbox"]{transform:scale(1.3);}
   .subtask-add input{font-size:.85rem;padding:.55rem;}
   .subtask-add button{min-width:48px;padding:.55rem .9rem;}
-
   .comment-add textarea{font-size:.85rem;}
   .comment-add button{min-width:48px;padding:.7rem 1rem;}
-
-  /* Kanban */
   .kanban-col{padding:.85rem;}
   .kanban-card{padding:.75rem;font-size:.85rem;}
-
-  /* Audit plein écran */
   .audit-panel{width:100vw;max-width:100vw;}
-
-  /* Tableau charge par membre : compact */
-  .card:has(#workload-tbody) table,
-  .card:has(#workload-tbody) thead,
-  .card:has(#workload-tbody) tbody,
-  .card:has(#workload-tbody) tr,
-  .card:has(#workload-tbody) th,
-  .card:has(#workload-tbody) td{display:revert;}
-  .card:has(#workload-tbody) th,
-  .card:has(#workload-tbody) td{padding:.55rem .4rem;font-size:.78rem;}
+  .card:has(#workload-tbody) table,.card:has(#workload-tbody) thead,.card:has(#workload-tbody) tbody,.card:has(#workload-tbody) tr,.card:has(#workload-tbody) th,.card:has(#workload-tbody) td{display:revert;}
+  .card:has(#workload-tbody) th,.card:has(#workload-tbody) td{padding:.55rem .4rem;font-size:.78rem;}
+  #back-to-top{width:44px;height:44px;bottom:1.25rem;right:1rem;font-size:1.15rem;}
+  #toast-container{bottom:5.5rem;}
+  .zip-modal-content{padding:1.5rem 1.25rem;}
+  .zip-progress-list{font-size:.72rem;max-height:200px;}
+  .template-block{padding:.75rem;}
+  .template-block pre{font-size:.72rem;max-height:220px;}
 }
-
 @media (max-width: 380px){
   .toolbar button{flex:1 1 100%;}
   .stat-value{font-size:1.15rem;}
   header h1{font-size:1.05rem !important;}
 }
-
-/* Scrollbar élégant */
 ::-webkit-scrollbar{width:10px;height:10px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:6px;border:2px solid var(--bg);}
@@ -535,7 +360,6 @@ tbody tr:last-child td{border-bottom:none;}
     </header>
   </div>
 
-  <!-- STATS -->
   <div class="stats-grid" id="stats-grid">
     <div class="stat-card"><div class="stat-label">Terminées</div><div class="stat-value" id="stat-done">0</div><div class="stat-sub">sur 22 tâches</div></div>
     <div class="stat-card"><div class="stat-label">En cours (assignées)</div><div class="stat-value" id="stat-progress">0</div><div class="stat-sub">tâches actives</div></div>
@@ -543,7 +367,6 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="stat-card"><div class="stat-label">Priorité P0</div><div class="stat-value" id="stat-p0">0</div><div class="stat-sub">restantes</div></div>
   </div>
 
-  <!-- CHARGE PAR MEMBRE -->
   <div class="card">
     <div class="card-header">
       <div><h2 class="card-title">👥 Charge de travail par membre</h2>
@@ -555,7 +378,6 @@ tbody tr:last-child td{border-bottom:none;}
     </table>
   </div>
 
-  <!-- TOOLBAR -->
   <div class="toolbar">
     <input type="text" id="search-input" placeholder="🔍 Rechercher (Ctrl+K)…" oninput="applyFilters()">
     <select id="filter-assignee" onchange="applyFilters()">
@@ -583,20 +405,18 @@ tbody tr:last-child td{border-bottom:none;}
     <button onclick="exportJSON()">💾 JSON</button>
     <button onclick="exportCSV()">📊 CSV</button>
     <button onclick="document.getElementById('import-file').click()">📥 Import</button>
+    <button onclick="generateFinalZip()" class="btn-generate" title="Générer un ZIP avec tous les fichiers finaux">📦 Générer le livrable final</button>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
   </div>
 
-  <!-- KANBAN (affiché en mode Kanban) -->
   <div id="kanban-view" class="kanban">
     <div class="kanban-col" data-col="todo"><h3>À faire <span id="kanban-count-todo">0</span></h3><div id="kanban-list-todo"></div></div>
     <div class="kanban-col" data-col="progress"><h3>En cours <span id="kanban-count-progress">0</span></h3><div id="kanban-list-progress"></div></div>
     <div class="kanban-col" data-col="done"><h3>Terminé <span id="kanban-count-done">0</span></h3><div id="kanban-list-done"></div></div>
   </div>
 
-  <!-- VUE TABLEAU (les cards existantes) -->
   <div id="table-view">
 
-  <!-- PO & COMMERCIAL -->
   <div class="card" data-section="po">
     <div class="card-header">
       <div><h2 class="card-title">🔴 PO & Commercial <span class="card-count" data-count-for="po">6</span></h2>
@@ -605,15 +425,15 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <table>
       <thead><tr>
-        <th style="width:40px;text-align:center;">Fait</th><th style="width:80px;">ID</th>
+        <th style="width:80px;">ID</th>
         <th style="width:60px;">Prio</th><th>Tâche & Périmètre</th>
         <th style="width:140px;">Réalisé par</th><th style="width:80px;text-align:center;">Temps</th>
+        <th style="width:40px;text-align:center;">Fait</th>
       </tr></thead>
       <tbody id="tbody-po"></tbody>
     </table>
   </div>
 
-  <!-- JURIDIQUE -->
   <div class="card" data-section="juridique">
     <div class="card-header">
       <div><h2 class="card-title">⚖️ Juridique & Rédac <span class="card-count" data-count-for="juridique">4</span></h2>
@@ -622,15 +442,15 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <table>
       <thead><tr>
-        <th style="width:40px;text-align:center;">Fait</th><th style="width:80px;">ID</th>
+        <th style="width:80px;">ID</th>
         <th style="width:60px;">Prio</th><th>Tâche & Périmètre</th>
         <th style="width:140px;">Réalisé par</th><th style="width:80px;text-align:center;">Temps</th>
+        <th style="width:40px;text-align:center;">Fait</th>
       </tr></thead>
       <tbody id="tbody-juridique"></tbody>
     </table>
   </div>
 
-  <!-- DEV & SEO -->
   <div class="card" data-section="dev">
     <div class="card-header">
       <div><h2 class="card-title">💻 Dev & SEO <span class="card-count" data-count-for="dev">12</span></h2>
@@ -639,19 +459,18 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <table>
       <thead><tr>
-        <th style="width:40px;text-align:center;">Fait</th><th style="width:80px;">ID</th>
+        <th style="width:80px;">ID</th>
         <th style="width:60px;">Prio</th><th>Tâche & Périmètre</th>
         <th style="width:140px;">Réalisé par</th><th style="width:80px;text-align:center;">Temps</th>
+        <th style="width:40px;text-align:center;">Fait</th>
       </tr></thead>
       <tbody id="tbody-dev"></tbody>
     </table>
   </div>
 
-  </div><!-- /table-view -->
+  </div>
+</div>
 
-</div><!-- /main-content -->
-
-<!-- PANNEAU AUDIT -->
 <div id="audit-panel" class="audit-panel">
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <h3>🕓 Historique d'activité</h3>
@@ -661,11 +480,13 @@ tbody tr:last-child td{border-bottom:none;}
   <div id="audit-list"></div>
 </div>
 
+<button id="back-to-top" onclick="scrollToTop()" title="Retour en haut" aria-label="Retour en haut">↑</button>
+
 <div id="toast-container"></div>
 
+<script src="/vendor/jszip.min.js"></script>
 <script>
-
-/* ---------- MIGRATION v2 → v3 (récupère les tâches déjà cochées) ---------- */
+/* ---------- MIGRATION v2 → v3 ---------- */
 (function migrateV2toV3(){
   try{
     const v2 = localStorage.getItem('kaly-livrer-tasks-v2');
@@ -684,9 +505,7 @@ tbody tr:last-child td{border-bottom:none;}
 })();
 
 /* =========================================================
-   KALY LIVRER — Feuille de route v3
-   Compatible API (/api/users, /api/auth/*, /api/tasks)
-   + fallback localStorage complet
+   KALY LIVRER — Feuille de route v4
    ========================================================= */
 
 const STORAGE_KEY   = 'kaly-livrer-tasks-v3';
@@ -695,40 +514,36 @@ const AUDIT_KEY     = 'kaly-livrer-audit-v3';
 const COMMENTS_KEY  = 'kaly-livrer-comments-v3';
 const SUBTASKS_KEY  = 'kaly-livrer-subtasks-v3';
 const DEADLINES_KEY = 'kaly-livrer-deadlines-v3';
+const SESSION_KEY   = 'kaly-livrer-session-v3';
 
 let currentUser = null;
 let systemUsers = {};
-let tasksMeta   = {};   // id → { subtasks:[], comments:[], deadline:'', title:'', section:'', priority:'' }
+let tasksMeta = { subtasks:{}, comments:{}, deadlines:{} };
 
 /* ---------- DONNÉES STATIQUES DES TÂCHES ---------- */
 const TASKS = [
-  // PO & Commercial
   {id:'GEO-001',section:'po',priority:'P0',title:'Identité commerciale & Éditeur',scope:'/legal/mentions, /a-propos — Valider raison sociale et RCS.',time:'1-3 j',detail:'Vérifier et inscrire :\n- Nom officiel : RAPEX SARL\n- Enseigne : Kaly Livrer\n- Numéro RCS / NIF / STAT : [À compléter]\n- Adresse siège : Antananarivo, Madagascar',team:'Tovo, Nanci'},
   {id:'GEO-002',section:'po',priority:'P0',title:'Téléphones divergents',scope:'/a-propos, /contact — Fixer un numéro unique.',time:'0.5 j',detail:'Format recommandé :\n- Téléphone principal Support Client : [Numéro Unique]\n- Numéro Direction / Partenariats : [Numéro B2B distinct]',team:'Tovo, Nanci'},
   {id:'GEO-005',section:'po',priority:'P0',title:'Chiffres et promesses',scope:'Accueil — Justifier "30 min", "+500 plats", "4.8".',time:'1-2 j',detail:'Remplacer les chiffres approximatifs par :\n- "Livraison moyenne en 35-45 minutes selon la zone à Antananarivo"\n- "+X restaurants partenaires enregistrés"\n- "Note basée sur les avis clients vérifiés"',team:'Tovo, Nanci'},
   {id:'GEO-007',section:'po',priority:'P1',title:'Informations de livraison',scope:'/livraison-antananarivo — Grille tarifaire par zone.',time:'3-5 j',detail:'Structure de la page :\n- Zone 1 (Centre ville / Analakely) : Frais X Ar\n- Zone 2 (Ivandry, Ankorondrano) : Frais Y Ar\n- Horaires de livraison : 08h00 - 20h00\n- Modes de paiement : Cash / MVola',team:'Tovo, Nanci'},
   {id:'GEO-019',section:'po',priority:'P2',title:'Profils et preuves externes',scope:'Réseaux sociaux, App, Partenaires — Liens réciproques.',time:'30-90 j',detail:'Checklist :\n1. Page Facebook : Aligner adresse, logo et téléphone officiel\n2. Profil Instagram : Lien exact vers la page d\'accueil\n3. Google Business Profile : Même raison sociale RAPEX / Kaly Livrer',team:'Tovo, Nanci'},
   {id:'GEO-020',section:'po',priority:'P3',title:'Mesure de visibilité IA & Moteurs',scope:'Tableau mensuel — Suivi du panel de 50 prompts.',time:'Récurrent',detail:'Prompt 001: "Quel service permet de commander un repas à Antananarivo ?"\nPrompt 002: "Comment se faire livrer un plat à Ivandry ?"\nMesure: Marque citée (Oui/Non), position et lien source.',team:'Tovo, Nanci'},
-
-  // Juridique
   {id:'GEO-006',section:'juridique',priority:'P0',title:'Pages légales contextualisées',scope:'/legal/mentions, /cgu, /privacy — Révision juridique locale.',time:'3-7 j',detail:'Société : RAPEX SARL (Marque Kaly Livrer)\nSiège : Antananarivo, Madagascar\nDirecteur de publication : Eric / Miora\nPaiements acceptés : Mobile Money (MVola) et espèces',team:'Eric, Miora, Nanci'},
   {id:'GEO-011',section:'juridique',priority:'P1',title:'Page partenaire B2B',scope:'/devenir-partenaire — Landing restaurateurs.',time:'3-5 j',detail:'Title: Devenir restaurant partenaire | Kaly Livrer\nH1: Développez vos ventes avec la livraison à Antananarivo\nSections: Avantages, Taux de commission, Inscription rapide.',team:'Eric, Miora, Nanci'},
-  {id:'GEO-012',section:'juridique',priority:'P1',title:'FAQ transactionnelle',scope:'/aide — Réponses aux questions courantes (Mobile Money, etc.).',time:'3 j',detail:'Q: Puis-je payer un repas par Mobile Money à Antananarivo ?\nR: Oui, Kaly Livrer accepte les paiements par MVola lors de la validation de votre commande.\n\nQ: Quels sont les délais de livraison ?\nR: Nos livreurs interviennent en moyenne en 30 à 45 minutes selon votre zone.',team:'Eric, Miora, Nanci'},
+  {id:'GEO-012',section:'juridique',priority:'P1',title:'FAQ transactionnelle',scope:'/aide — Réponses aux questions courantes (Mobile Money, etc.).',time:'3 j',detail:'Q: Puis-je payer un repas par Mobile Money à Antananarivo ?\nR: Oui, Kaly Livrer accepte les paiements par MVola.\n\nQ: Quels sont les délais de livraison ?\nR: Nos livreurs interviennent en moyenne en 30 à 45 minutes selon votre zone.',team:'Eric, Miora, Nanci'},
   {id:'GEO-021',section:'juridique',priority:'P3',title:'Contenu local unique par zone',scope:'/livraison-antananarivo — Landing pages par quartier.',time:'90 j',detail:'Modèle pour /livraison-ivandry :\nTitle: Livraison de repas à Ivandry | Kaly Livrer\nH1: Vos restaurants préférés livrés chez vous à Ivandry',team:'Eric, Miora, Nanci'},
-
-  // Dev & SEO
   {id:'GEO-003',section:'dev',priority:'P0',title:'Langue déclarée',scope:'Passer de lang="en" à lang="fr-MG" dans le HTML.',time:'0.5 j',detail:'<!-- Avant --> <html lang="en">\n<!-- Après --> <html lang="fr-MG">',team:'Safidy, Lioka, Tovo'},
   {id:'GEO-004',section:'dev',priority:'P0',title:'Descriptions en double',scope:'Gabarit global — Supprimer la 2ème meta description.',time:'1 j',detail:'<!-- Conserver uniquement la première balise meta description dynamique -->\n<meta name="description" content="[DESCRIPTION DYNAMIQUE PAR PAGE]">',team:'Safidy, Lioka, Tovo'},
   {id:'GEO-008',section:'dev',priority:'P1',title:'Rendu du catalogue (SSR)',scope:'/plats&produits — Plats et prix rendus côté serveur.',time:'5-10 j',detail:'// S\'assurer que le HTML brut généré contient directement les titres et prix des plats\n// Sans attendre le chargement de scripts JavaScript clients pour alimenter le DOM.',team:'Safidy, Lioka, Tovo'},
-  {id:'GEO-009',section:'dev',priority:'P1',title:'Schema Organization & WebSite',scope:'Gabarit commun — Ajouter JSON-LD Organization.',time:'1-2 j',detail:'<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@graph": [\n    {\n      "@type": "Organization",\n      "@id": "https://kaly-livrer.com/#organization",\n      "name": "Kaly Livrer",\n      "url": "https://kaly-livrer.com/",\n      "email": "contact@kaly-livrer.com",\n      "areaServed": { "@type": "City", "name": "Antananarivo" }\n    }\n  ]\n}\n<\/script>',team:'Safidy, Lioka, Tovo'},
-  {id:'GEO-010',section:'dev',priority:'P1',title:'Schema catalogue',scope:'Fiches plat — Générer Product / Offer.',time:'3-5 j',detail:'<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Product",\n  "name": "[NOM DU PLAT]",\n  "offers": {\n    "@type": "Offer",\n    "priceCurrency": "MGA",\n    "price": "15000",\n    "availability": "https://schema.org/InStock"\n  }\n}\n<\/script>',team:'Safidy, Lioka, Tovo'},
-  {id:'GEO-013',section:'dev',priority:'P1',title:'Titles, H1 & Open Graph',scope:'Matrix de balises uniques par gabarit.',time:'2 j',detail:'<title>Plats et produits livrés à Antananarivo | Kaly Livrer</title>\n<meta name="description" content="Commandez vos repas en ligne...">\n<link rel="canonical" href="https://kaly-livrer.com/plats&amp;produits">\n<meta property="og:title" content="Plats et produits | Kaly Livrer">',team:'Safidy, Lioka, Tovo'},
-  {id:'GEO-014',section:'dev',priority:'P1',title:'Panier et espace privé',scope:'/panier, compte — Balise noindex sur routes privées.',time:'2 j',detail:'<!-- À placer dans le <head> de /panier et /compte -->\n<meta name="robots" content="noindex, nofollow">',team:'Safidy, Lioka, Tovo'},
-  {id:'GEO-015',section:'dev',priority:'P2',title:'Sitemap et robots.txt',scope:'/robots.txt, /sitemap.xml — URLs 200 canoniques.',time:'1 j',detail:'User-agent: *\nAllow: /\nDisallow: /panier\nDisallow: /compte\nSitemap: https://kaly-livrer.com/sitemap.xml',team:'Safidy, Lioka, Tovo'},
-  {id:'GEO-016',section:'dev',priority:'P2',title:'URLs et canoniques',scope:'Nettoyage des caractères & dans les slugs.',time:'2-4 j',detail:'// Rediriger de façon permanente (301)\n/plats&amp;produits -> /plats-et-produits',team:'Safidy, Lioka, Tovo'},
-  {id:'GEO-017',section:'dev',priority:'P2',title:'Maillage et fil d\'Ariane',scope:'Breadcrumbs visibles & BreadcrumbList Schema.',time:'3 j',detail:'<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "BreadcrumbList",\n  "itemListElement": [{\n    "@type": "ListItem",\n    "position": 1,\n    "name": "Accueil",\n    "item": "https://kaly-livrer.com/"\n  }]\n}\n<\/script>',team:'Safidy, Lioka, Tovo'},
+  {id:'GEO-009',section:'dev',priority:'P1',title:'Schema Organization & WebSite',scope:'Gabarit commun — Ajouter JSON-LD Organization.',time:'1-2 j',detail:'Ajouter dans le <head> de chaque page un script JSON-LD de type Organization avec @id, name, url, email, areaServed. Ajouter aussi un script WebSite.',team:'Safidy, Lioka, Tovo'},
+  {id:'GEO-010',section:'dev',priority:'P1',title:'Schema catalogue',scope:'Fiches plat — Générer Product / Offer.',time:'3-5 j',detail:'Ajouter par plat un script JSON-LD de type Product avec name, image, offers (priceCurrency MGA, price, availability).',team:'Safidy, Lioka, Tovo'},
+  {id:'GEO-013',section:'dev',priority:'P1',title:'Titles, H1 & Open Graph',scope:'Matrix de balises uniques par gabarit.',time:'2 j',detail:'Ajouter title, meta description, canonical, og:title, og:description, og:url, og:image, og:locale et twitter:card sur chaque page.',team:'Safidy, Lioka, Tovo'},
+  {id:'GEO-014',section:'dev',priority:'P1',title:'Panier et espace privé',scope:'/panier, compte — Balise noindex sur routes privées.',time:'2 j',detail:'Ajouter dans le <head> de /panier et /compte : meta name="robots" content="noindex, nofollow"',team:'Safidy, Lioka, Tovo'},
+  {id:'GEO-015',section:'dev',priority:'P2',title:'Sitemap et robots.txt',scope:'/robots.txt, /sitemap.xml — URLs 200 canoniques.',time:'1 j',detail:'robots.txt : User-agent *, Allow /, Disallow /panier /compte, Sitemap. sitemap.xml : URLs principales avec changefreq et priority.',team:'Safidy, Lioka, Tovo'},
+  {id:'GEO-016',section:'dev',priority:'P2',title:'URLs et canoniques',scope:'Nettoyage des caractères & dans les slugs.',time:'2-4 j',detail:'Rediriger de façon permanente (301) : /plats&produits -> /plats-et-produits',team:'Safidy, Lioka, Tovo'},
+  {id:'GEO-017',section:'dev',priority:'P2',title:'Maillage et fil d\'Ariane',scope:'Breadcrumbs visibles & BreadcrumbList Schema.',time:'3 j',detail:'Ajouter nav aria-label="Fil d\'Ariane" avec <ol> et <li>, et un script JSON-LD BreadcrumbList.',team:'Safidy, Lioka, Tovo'},
   {id:'GEO-018',section:'dev',priority:'P2',title:'Images et performance Web',scope:'Attributs alt, WebP/AVIF et Core Web Vitals.',time:'3-7 j',detail:'<img src="plat.webp" alt="Livraison plat de soupe chinoise à Antananarivo" loading="lazy" width="400" height="300">',team:'Safidy, Lioka, Tovo'},
-  {id:'GEO-022',section:'dev',priority:'P3',title:'Index éditorial IA (llms.txt)',scope:'/llms.txt — Index vers pages clés.',time:'90 j',detail:'# Kaly Livrer\n> Plateforme de commande de plats et produits à Antananarivo.\n- [Accueil](https://kaly-livrer.com/)\n- [Catalogue](https://kaly-livrer.com/plats-et-produits)\n- [Contact](https://kaly-livrer.com/contact)',team:'Safidy, Lioka, Tovo'},
+  {id:'GEO-022',section:'dev',priority:'P3',title:'Index éditorial IA (llms.txt)',scope:'/llms.txt — Index vers pages clés.',time:'90 j',detail:'# Kaly Livrer\n> Plateforme de commande de plats et produits à Antananarivo.\n- [Accueil](https://kaly-livrer.com/)\n- [Catalogue](https://kaly-livrer.com/plats-et-produits)\n- [Contact](https://kaly-livrer.com/contact)',team:'Safidy, Lioka, Tovo'}
 ];
 
 /* ---------- INITIALISATION ---------- */
@@ -738,7 +553,9 @@ document.addEventListener('DOMContentLoaded', () => {
   tryFetchSystemUsers();
   renderAllRows();
   setupKeyboardShortcuts();
+  updateBackToTopVisibility();
   tryRestoreSession();
+  applyDeadlinesFromData();
 });
 
 function tryFetchSystemUsers(){
@@ -749,16 +566,19 @@ function tryFetchSystemUsers(){
 }
 
 function loadLocalUsers(){
-  try { const s = localStorage.getItem(USERS_KEY); if(s) systemUsers = JSON.parse(s); } catch(e){ systemUsers = {}; }
+  try { const s = localStorage.getItem(USERS_KEY); if(s) systemUsers = JSON.parse(s); }
+  catch(e){ systemUsers = {}; }
 }
-function saveLocalUsers(){ try{ localStorage.setItem(USERS_KEY, JSON.stringify(systemUsers)); }catch(e){} }
+function saveLocalUsers(){
+  try{ localStorage.setItem(USERS_KEY, JSON.stringify(systemUsers)); }catch(e){}
+}
 
 function loadMeta(){
   try{
     tasksMeta = {
       subtasks:  JSON.parse(localStorage.getItem(SUBTASKS_KEY)  || '{}'),
       comments:  JSON.parse(localStorage.getItem(COMMENTS_KEY)  || '{}'),
-      deadlines: JSON.parse(localStorage.getItem(DEADLINES_KEY) || '{}'),
+      deadlines: JSON.parse(localStorage.getItem(DEADLINES_KEY) || '{}')
     };
   }catch(e){ tasksMeta = {subtasks:{},comments:{},deadlines:{}}; }
 }
@@ -773,11 +593,11 @@ function saveMeta(){
 /* ---------- RENDU DES LIGNES ---------- */
 function renderAllRows(){
   const groups = {po:[],juridique:[],dev:[]};
-  TASKS.forEach(t => groups[t.section].push(t));
+  TASKS.forEach(t => { if(groups[t.section]) groups[t.section].push(t); });
 
   Object.keys(groups).forEach(section=>{
     const tbody = document.getElementById('tbody-'+section);
-    tbody.innerHTML = groups[section].map(t=>renderRow(t)).join('');
+    if(tbody) tbody.innerHTML = groups[section].map(t=>renderRow(t)).join('');
   });
 }
 
@@ -787,68 +607,97 @@ function renderRow(t){
   const deadline = tasksMeta.deadlines[t.id] || '';
   const dl = deadline ? getDeadlineBadge(deadline) : '';
 
-  const subtasksHtml = `
-    <div class="subtasks">
-      <h5>✅ Sous-tâches</h5>
-      <div id="sub-list-${t.id}">
-        ${subtasks.map((s,i)=>`
-          <div class="subtask">
-            <input type="checkbox" ${s.done?'checked':''} onchange="toggleSubtask('${t.id}',${i})">
-            <span class="${s.done?'done':''}">${escapeHtml(s.text)}</span>
-            <button onclick="removeSubtask('${t.id}',${i})" style="margin-left:auto;background:none;border:none;color:var(--danger);cursor:pointer;font-weight:700;">✕</button>
-          </div>`).join('') || '<div style="font-size:.75rem;color:var(--muted);">Aucune sous-tâche.</div>'}
-      </div>
-      <div class="subtask-add">
-        <input type="text" placeholder="Ajouter une étape…" onkeydown="if(event.key==='Enter'){addSubtask('${t.id}',this.value);this.value='';}">
-        <button onclick="const i=this.previousElementSibling;addSubtask('${t.id}',i.value);i.value='';">+</button>
-      </div>
-    </div>`;
+  const subtasksHtml = [
+    '<div class="subtasks">',
+    '<h5>✅ Sous-tâches</h5>',
+    '<div id="sub-list-'+t.id+'">',
+    subtasks.length ? subtasks.map((s,i)=>
+      '<div class="subtask">' +
+        '<input type="checkbox" ' + (s.done?'checked':'') + ' onchange="toggleSubtask(\'' + t.id + '\',' + i + ')">' +
+        '<span class="' + (s.done?'done':'') + '">' + escapeHtml(s.text) + '</span>' +
+        '<button onclick="removeSubtask(\'' + t.id + '\',' + i + ')" style="margin-left:auto;background:none;border:none;color:var(--danger);cursor:pointer;font-weight:700;">✕</button>' +
+      '</div>'
+    ).join('') : '<div style="font-size:.75rem;color:var(--muted);">Aucune sous-tâche.</div>',
+    '</div>',
+    '<div class="subtask-add">',
+    '<input type="text" placeholder="Ajouter une étape…" onkeydown="if(event.key===\'Enter\'){addSubtask(\'' + t.id + '\',this.value);this.value=\'\';}">',
+    '<button onclick="const i=this.previousElementSibling;addSubtask(\'' + t.id + '\',i.value);i.value=\'\';">+</button>',
+    '</div>',
+    '</div>'
+  ].join('');
 
-  const commentsHtml = `
-    <div class="comments">
-      <div id="cmt-list-${t.id}">
-        ${comments.map(c=>`
-          <div class="comment">
-            <div class="comment-head"><span>💬 ${escapeHtml(c.user)}</span><span>${fmtDate(c.date)}</span></div>
-            <div class="comment-body">${escapeHtml(c.text)}</div>
-          </div>`).join('')}
-      </div>
-      <div class="comment-add">
-        <textarea placeholder="Ajouter un commentaire…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addComment('${t.id}',this.value);this.value='';}"></textarea>
-        <button onclick="const i=this.previousElementSibling;addComment('${t.id}',i.value);i.value='';">💬</button>
-      </div>
-    </div>`;
+  const commentsHtml = [
+    '<div class="comments">',
+    '<div id="cmt-list-'+t.id+'">',
+    comments.length ? comments.map(c=>
+      '<div class="comment">' +
+        '<div class="comment-head"><span>💬 ' + escapeHtml(c.user) + '</span><span>' + fmtDate(c.date) + '</span></div>' +
+        '<div class="comment-body">' + escapeHtml(c.text) + '</div>' +
+      '</div>'
+    ).join('') : '',
+    '</div>',
+    '<div class="comment-add">',
+    '<textarea placeholder="Ajouter un commentaire…" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();addComment(\'' + t.id + '\',this.value);this.value=\'\';}"></textarea>',
+    '<button onclick="const i=this.previousElementSibling;addComment(\'' + t.id + '\',i.value);i.value=\'\';">💬</button>',
+    '</div>',
+    '</div>'
+  ].join('');
 
-  return `
-  <tr class="task-row" data-id="${t.id}" data-priority="${t.priority}" id="task-${t.id}" data-title="${escapeHtml(t.title)}" data-section="${t.section}" data-time="${t.time}">
-    <td style="text-align:center;"><input type="checkbox" class="task-cb" onchange="saveTasksState()"></td>
-    <td><strong>${t.id}</strong><a href="#task-${t.id}" class="anchor-link" title="Lien direct">🔗</a></td>
-    <td><span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span></td>
-    <td>
-      <strong>${escapeHtml(t.title)}</strong><br>
-      <small style="color:var(--muted);">${escapeHtml(t.scope)}</small>
-      ${dl}
-      <div class="task-meta"><span class="chip">⏱ ${t.time}</span><span class="chip">📁 ${t.section}</span></div><br>
-      <button class="expand-btn" onclick="toggleExpand('exp-${t.id}')">📋 Détail technique</button>
-      <button class="expand-btn" onclick="toggleExpand('sub-${t.id}')">✅ Sous-tâches</button>
-      <button class="expand-btn" onclick="toggleExpand('cmt-${t.id}')">💬 Commentaires</button>
-      <div id="exp-${t.id}" class="expand-content">${escapeHtml(t.detail)}</div>
-      <div id="sub-${t.id}" class="expand-content" style="background:transparent;color:inherit;font-family:inherit;font-size:.85rem;">${subtasksHtml}</div>
-      <div id="cmt-${t.id}" class="expand-content" style="background:transparent;color:inherit;font-family:inherit;font-size:.85rem;">${commentsHtml}</div>
-      <div style="margin-top:.5rem;display:flex;align-items:center;gap:.5rem;">
-        <label style="margin:0;font-size:.7rem;text-transform:none;">📅 Deadline :</label>
-        <input type="date" value="${deadline}" onchange="setDeadline('${t.id}',this.value)" style="margin:0;padding:.25rem .5rem;font-size:.75rem;width:auto;">
-      </div>
-    </td>
-    <td>
-      <span class="assignee-chip" id="chip-${t.id}">👤 —</span>
-      <select class="task-assignee" onchange="saveTasksState();updateAssigneeChip('${t.id}')">
-        <option value="">-- Choisir --</option>
-        ${['Eric','Miora','Tovo','Nanci','Safidy','Lioka'].map(u=>`<option value="${u}">${u}</option>`).join('')}
-      </select>
-    </td>
-    <td style="text-align:center;">${t.time}</td>
-  </tr>`;
+  const tpl = getTemplate(t.id);
+  const tplBlock = tpl ? (
+    '<div id="tpl-' + t.id + '" class="expand-content" style="background:transparent;padding:0;">' +
+      '<div class="template-block">' +
+        '<h6>📝 Modèle prêt à l\'emploi</h6>' +
+        '<pre>' + escapeHtml(tpl) + '</pre>' +
+        '<div class="tpl-actions">' +
+          '<button class="copy-btn" onclick="copyTemplate(\'' + t.id + '\',this)">📋 Copier</button>' +
+          '<button class="copy-btn" onclick="downloadTemplate(\'' + t.id + '\')">💾 Télécharger</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  ) : '';
+
+  return [
+    '<tr class="task-row" data-id="' + t.id + '" data-priority="' + t.priority + '" id="task-' + t.id + '" data-section="' + t.section + '" data-time="' + t.time + '">',
+    '<td><strong>' + t.id + '</strong><a href="#task-' + t.id + '" class="anchor-link" title="Lien direct">🔗</a></td>',
+    '<td><span class="badge badge-' + t.priority.toLowerCase() + '">' + t.priority + '</span></td>',
+    '<td>',
+    '<strong>' + escapeHtml(t.title) + '</strong><br>',
+    '<small style="color:var(--muted);">' + escapeHtml(t.scope) + '</small>',
+    dl,
+    '<div class="task-meta"><span class="chip">⏱ ' + t.time + '</span><span class="chip">📁 ' + t.section + '</span></div><br>',
+    '<button class="expand-btn" onclick="toggleExpand(\'exp-' + t.id + '\')">📋 Détail technique</button>',
+    tpl ? '<button class="expand-btn" onclick="toggleExpand(\'tpl-' + t.id + '\')" style="background:rgba(37,99,235,.1);color:#2563eb;">📝 Modèle prêt à copier</button>' : '',
+    '<button class="expand-btn" onclick="toggleExpand(\'sub-' + t.id + '\')">✅ Sous-tâches</button>',
+    '<button class="expand-btn" onclick="toggleExpand(\'cmt-' + t.id + '\')">💬 Commentaires</button>',
+    '<div id="exp-' + t.id + '" class="expand-content">' + escapeHtml(t.detail) + '</div>',
+    tplBlock,
+    '<div id="sub-' + t.id + '" class="expand-content" style="background:transparent;color:inherit;font-family:inherit;font-size:.85rem;">' + subtasksHtml + '</div>',
+    '<div id="cmt-' + t.id + '" class="expand-content" style="background:transparent;color:inherit;font-family:inherit;font-size:.85rem;">' + commentsHtml + '</div>',
+    '<div style="margin-top:.5rem;display:flex;align-items:center;gap:.5rem;">',
+    '<label style="margin:0;font-size:.7rem;text-transform:none;">📅 Deadline :</label>',
+    '<input type="date" value="" data-deadline="' + deadline + '" onchange="setDeadline(\'' + t.id + '\',this.value)" style="margin:0;padding:.25rem .5rem;font-size:.75rem;width:auto;">',
+    '</div>',
+    '</td>',
+    '<td>',
+    '<span class="assignee-chip empty" id="chip-' + t.id + '">👤 —</span>',
+    '<select class="task-assignee" onchange="saveTasksState();updateAssigneeChip(\'' + t.id + '\')">',
+    '<option value="">-- Choisir --</option>',
+    ['Eric','Miora','Tovo','Nanci','Safidy','Lioka'].map(u=>'<option value="'+u+'">'+u+'</option>').join(''),
+    '</select>',
+    '</td>',
+    '<td style="text-align:center;">' + t.time + '</td>',
+    '<td style="text-align:center;"><input type="checkbox" class="task-cb" onchange="saveTasksState()"></td>',
+    '</tr>'
+  ].join('');
+}
+
+function applyDeadlinesFromData(){
+  document.querySelectorAll('input[type="date"][data-deadline]').forEach(function(inp){
+    const v = inp.getAttribute('data-deadline');
+    if(v && /^\d{4}-\d{2}-\d{2}$/.test(v)) inp.value = v;
+    else inp.value = '';
+  });
 }
 
 /* ---------- AUTHENTIFICATION ---------- */
@@ -874,7 +723,7 @@ function checkUserAuthStatus(){
     confirmContainer.classList.remove('hidden');
     submitBtn.innerText = "Créer mon profil";
   }
-  setTimeout(()=>document.getElementById('pin-input').focus(),100);
+  setTimeout(function(){ document.getElementById('pin-input').focus(); }, 100);
 }
 
 function handleAuthSubmit(){
@@ -889,14 +738,15 @@ function handleAuthSubmit(){
     if(pin!==pinConfirm) return showAuthError("Les deux codes ne correspondent pas.");
     systemUsers[user] = pin;
     saveLocalUsers();
-    fetch('/api/auth/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,pin})}).catch(()=>{});
-    showToast(`Profil créé pour ${user}`,'success');
+    fetch('/api/auth/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:user,pin:pin})}).catch(function(){});
+    showToast('Profil créé pour ' + user, 'success');
     loginSuccess(user);
   }else{
     if(systemUsers[user]===pin){ loginSuccess(user); return; }
-    fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,pin})})
-      .then(r=>r.json()).then(d=>{ if(d.status==="ok") loginSuccess(user); else showAuthError("Code PIN incorrect."); })
-      .catch(()=>showAuthError("Code PIN incorrect."));
+    fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:user,pin:pin})})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(d.status==="ok") loginSuccess(user); else showAuthError("Code PIN incorrect."); })
+      .catch(function(){ showAuthError("Code PIN incorrect."); });
   }
 }
 
@@ -907,25 +757,28 @@ function showAuthError(msg){
 
 function loginSuccess(user, silent){
   currentUser = user;
+  const now = new Date();
 
-  // 💾 Persiste la session (30 min)
   try{
-    localStorage.setItem('kaly-livrer-session-v3', JSON.stringify({
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
       user: user,
-      expires: Date.now() + 30*60*1000
+      started: now.toISOString(),
+      expires: now.getTime() + 30*60*1000
     }));
   }catch(e){}
 
   document.getElementById('auth-modal').classList.add('hidden');
   document.getElementById('main-content').classList.remove('disabled');
-  document.getElementById('welcome-message').innerText = `👋 Bonjour ${user}, bonne session de travail !`;
+  document.getElementById('welcome-message').innerText = '👋 Bonjour ' + user + ', bonne session de travail !';
   document.getElementById('welcome-banner').classList.remove('hidden');
-  document.getElementById('current-session-user').innerText = `Session : ${user}`;
 
-  // ⏱️ Le bandeau disparaît après 4 s (sauf reprise silencieuse)
+  const hh = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const dd = now.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+  document.getElementById('current-session-user').innerText = 'Session : ' + user + ' · démarrée à ' + hh + ' (' + dd + ')';
+
   if(!silent){
     clearTimeout(window.__welcomeTimeout);
-    window.__welcomeTimeout = setTimeout(()=>{
+    window.__welcomeTimeout = setTimeout(function(){
       document.getElementById('welcome-banner').classList.add('hidden');
     }, 4000);
   }else{
@@ -935,19 +788,19 @@ function loginSuccess(user, silent){
   loadTasksState();
   renderAudit();
   updateAlertBadges();
-  if(!silent) showToast(`Bienvenue ${user} !`, 'success');
+  if(!silent) showToast('Bienvenue ' + user + ' !', 'success');
 }
 
 function tryRestoreSession(){
   try{
-    const s = localStorage.getItem('kaly-livrer-session-v3');
+    const s = localStorage.getItem(SESSION_KEY);
     if(!s) return false;
     const data = JSON.parse(s);
     if(data.expires && data.expires > Date.now() && systemUsers[data.user]){
       loginSuccess(data.user, true);
       return true;
     }else{
-      localStorage.removeItem('kaly-livrer-session-v3');
+      localStorage.removeItem(SESSION_KEY);
     }
   }catch(e){}
   return false;
@@ -957,7 +810,12 @@ function refreshData(){
   showToast('🔄 Actualisation…', 'success');
   loadMeta();
   renderAllRows();
-  setTimeout(()=>{ loadTasksState(); renderAudit(); updateAlertBadges(); }, 100);
+  setTimeout(function(){
+    loadTasksState();
+    renderAudit();
+    updateAlertBadges();
+    applyDeadlinesFromData();
+  }, 100);
 }
 
 function updateAssigneeChip(taskId){
@@ -977,14 +835,14 @@ function updateAssigneeChip(taskId){
 }
 
 function updateAllAssigneeChips(){
-  document.querySelectorAll('.task-row').forEach(row=>{
+  document.querySelectorAll('.task-row').forEach(function(row){
     updateAssigneeChip(row.getAttribute('data-id'));
   });
 }
 
 function logout(){
   currentUser = null;
-  try{ localStorage.removeItem('kaly-livrer-session-v3'); }catch(e){}
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
   document.getElementById('auth-modal').classList.remove('hidden');
   document.getElementById('main-content').classList.add('disabled');
   document.getElementById('welcome-banner').classList.add('hidden');
@@ -997,17 +855,17 @@ function loadTasksState(){
   let state = {};
   try{ const s = localStorage.getItem(STORAGE_KEY); if(s) state = JSON.parse(s); }catch(e){}
   applyStateToUI(state);
-  fetch('/api/tasks').then(r=>{ if(!r.ok) throw new Error(); return r.json(); })
-    .then(api=>{
+  fetch('/api/tasks').then(function(r){ if(!r.ok) throw new Error(); return r.json(); })
+    .then(function(api){
       if(api && Object.keys(api).length){
         applyStateToUI(api);
         try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(api)); }catch(e){}
       }
-    }).catch(()=>{});
+    }).catch(function(){});
 }
 
 function applyStateToUI(state){
-  document.querySelectorAll('.task-row').forEach(row=>{
+  document.querySelectorAll('.task-row').forEach(function(row){
     const id = row.getAttribute('data-id');
     const d = state[id];
     if(d){
@@ -1018,20 +876,27 @@ function applyStateToUI(state){
     }
   });
   updateAllAssigneeChips();
-  updateProgressUI(); updateStatsDashboard(); renderKanban(); updateAlertBadges();
+  applyDeadlinesFromData();
+  updateProgressUI();
+  updateStatsDashboard();
+  renderKanban();
+  updateAlertBadges();
 }
 
 function saveTasksState(){
   const state = {};
-  document.querySelectorAll('.task-row').forEach(row=>{
+  document.querySelectorAll('.task-row').forEach(function(row){
     const id = row.getAttribute('data-id');
     const cb = row.querySelector('.task-cb');
     const sel = row.querySelector('.task-assignee');
     state[id] = {checked: cb?cb.checked:false, assignee: sel?sel.value:''};
   });
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
-  updateProgressUI(); updateStatsDashboard(); renderKanban(); updateAlertBadges();
-  fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)}).catch(()=>{});
+  updateProgressUI();
+  updateStatsDashboard();
+  renderKanban();
+  updateAlertBadges();
+  fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)}).catch(function(){});
 }
 
 /* ---------- SOUS-TÂCHES ---------- */
@@ -1039,10 +904,11 @@ function addSubtask(id, text){
   if(!text || !text.trim()) return;
   if(!tasksMeta.subtasks[id]) tasksMeta.subtasks[id] = [];
   tasksMeta.subtasks[id].push({text:text.trim(), done:false});
-  saveMeta(); logAudit('ajout sous-tâche', id, text.trim()); rerenderTaskInline(id);
+  saveMeta(); logAudit('ajout sous-tâche', id, text.trim());
+  rerenderTaskInline(id);
 }
 function toggleSubtask(id, idx){
-  const s = tasksMeta.subtasks[id]?.[idx];
+  const s = tasksMeta.subtasks[id] && tasksMeta.subtasks[id][idx];
   if(!s) return;
   s.done = !s.done;
   saveMeta(); logAudit(s.done?'coche sous-tâche':'décoche sous-tâche', id, s.text);
@@ -1051,7 +917,8 @@ function toggleSubtask(id, idx){
 function removeSubtask(id, idx){
   if(!tasksMeta.subtasks[id]) return;
   const removed = tasksMeta.subtasks[id].splice(idx,1)[0];
-  saveMeta(); logAudit('supprime sous-tâche', id, removed?.text||''); rerenderTaskInline(id);
+  saveMeta(); logAudit('supprime sous-tâche', id, removed ? removed.text : '');
+  rerenderTaskInline(id);
 }
 
 /* ---------- COMMENTAIRES ---------- */
@@ -1059,38 +926,38 @@ function addComment(id, text){
   if(!text || !text.trim()) return;
   if(!tasksMeta.comments[id]) tasksMeta.comments[id] = [];
   tasksMeta.comments[id].push({user:currentUser||'Anonyme', text:text.trim(), date:new Date().toISOString()});
-  saveMeta(); logAudit('commentaire', id, text.trim().slice(0,60)); rerenderTaskInline(id);
+  saveMeta(); logAudit('commentaire', id, text.trim().slice(0,60));
+  rerenderTaskInline(id);
 }
 
 /* ---------- DEADLINES ---------- */
 function setDeadline(id, date){
   tasksMeta.deadlines[id] = date;
-  saveMeta(); logAudit('deadline', id, date); rerenderTaskInline(id);
+  saveMeta(); logAudit('deadline', id, date);
+  rerenderTaskInline(id);
 }
-
 function getDeadlineBadge(dateStr){
   const d = new Date(dateStr); const now = new Date();
   const diff = Math.ceil((d - now)/(1000*60*60*24));
-  let cls='deadline-ok', label=`📅 ${dateStr}`;
-  if(diff<0){ cls='deadline-late'; label=`⚠️ En retard (${dateStr})`; }
-  else if(diff<=3){ cls='deadline-soon'; label=`⏳ Dans ${diff} j (${dateStr})`; }
-  return `<span class="deadline-badge ${cls}">${label}</span>`;
+  let cls = 'deadline-ok';
+  let label = '📅 ' + dateStr;
+  if(diff < 0){ cls = 'deadline-late'; label = '⚠️ En retard (' + dateStr + ')'; }
+  else if(diff <= 3){ cls = 'deadline-soon'; label = '⏳ Dans ' + diff + ' j (' + dateStr + ')'; }
+  return '<span class="deadline-badge ' + cls + '">' + label + '</span>';
 }
 
-/* ---------- RERENDER INLINE (sans perdre l'état) ---------- */
+/* ---------- RERENDER INLINE ---------- */
 function rerenderTaskInline(id){
   const oldRow = document.getElementById('task-'+id);
   if(!oldRow) return;
-  const task = TASKS.find(t=>t.id===id);
+  const task = TASKS.find(function(t){ return t.id===id; });
   if(!task) return;
 
-  // Sauvegarde des valeurs actuelles
-  const wasChecked = oldRow.querySelector('.task-cb')?.checked;
-  const wasAssigned = oldRow.querySelector('.task-assignee')?.value;
+  const wasChecked = oldRow.querySelector('.task-cb') ? oldRow.querySelector('.task-cb').checked : false;
+  const wasAssigned = oldRow.querySelector('.task-assignee') ? oldRow.querySelector('.task-assignee').value : '';
 
-  // Conserve l'état des expands ouverts
   const opens = new Set();
-  ['exp-','sub-','cmt-'].forEach(pre=>{
+  ['exp-','sub-','cmt-','tpl-'].forEach(function(pre){
     const el = document.getElementById(pre+id);
     if(el && el.style.display==='block') opens.add(pre);
   });
@@ -1103,26 +970,29 @@ function rerenderTaskInline(id){
 
   newRow.querySelector('.task-cb').checked = wasChecked;
   newRow.querySelector('.task-assignee').value = wasAssigned;
-  opens.forEach(pre=>{
+  opens.forEach(function(pre){
     const el = document.getElementById(pre+id);
     if(el) el.style.display = 'block';
   });
   updateAssigneeChip(id);
-  updateProgressUI(); updateStatsDashboard(); renderKanban();
+  applyDeadlinesFromData();
+  updateProgressUI();
+  updateStatsDashboard();
+  renderKanban();
 }
-
+  
 /* ---------- UI PROGRESSION ---------- */
 function updateProgressUI(){
   const cbs = document.querySelectorAll('.task-cb');
   let done = 0;
-  cbs.forEach(cb=>{
+  cbs.forEach(function(cb){
     const row = cb.closest('tr');
     if(cb.checked){ done++; row.classList.add('completed-row'); }
     else row.classList.remove('completed-row');
   });
-  const pct = Math.round((done/cbs.length)*100)||0;
+  const pct = Math.round((done/cbs.length)*100) || 0;
   document.getElementById('progress-bar').style.width = pct+'%';
-  document.getElementById('progress-text').innerText = `${pct}% (${done}/${cbs.length})`;
+  document.getElementById('progress-text').innerText = pct + '% (' + done + '/' + cbs.length + ')';
 }
 
 /* ---------- STATS ---------- */
@@ -1131,7 +1001,7 @@ function updateStatsDashboard(){
   let done=0, progress=0, unassigned=0, p0Remaining=0;
   const byMember = {};
 
-  rows.forEach(row=>{
+  rows.forEach(function(row){
     const cb = row.querySelector('.task-cb');
     const sel = row.querySelector('.task-assignee');
     const prio = row.getAttribute('data-priority');
@@ -1142,7 +1012,7 @@ function updateStatsDashboard(){
     if(!assignee) unassigned++;
     if(prio==='P0' && !isDone) p0Remaining++;
     if(assignee){
-      if(!byMember[assignee]) byMember[assignee]={assigned:0,done:0};
+      if(!byMember[assignee]) byMember[assignee] = {assigned:0,done:0};
       byMember[assignee].assigned++;
       if(isDone) byMember[assignee].done++;
     }
@@ -1155,21 +1025,22 @@ function updateStatsDashboard(){
 
   const tbody = document.getElementById('workload-tbody');
   const members = ['Eric','Miora','Tovo','Nanci','Safidy','Lioka'];
-  tbody.innerHTML = members.map(m=>{
+  tbody.innerHTML = members.map(function(m){
     const d = byMember[m] || {assigned:0,done:0};
     const rem = d.assigned - d.done;
     const pct = d.assigned ? Math.round((d.done/d.assigned)*100) : 0;
-    return `<tr>
-      <td><strong>${m}</strong></td>
-      <td>${d.assigned}</td>
-      <td style="color:var(--success);font-weight:700;">${d.done}</td>
-      <td style="color:${rem>0?'var(--danger)':'var(--muted)'};font-weight:700;">${rem}</td>
-      <td><div style="display:flex;align-items:center;gap:.5rem;">
-        <div style="flex:1;background:var(--border);height:8px;border-radius:4px;overflow:hidden;min-width:60px;">
-          <div style="background:var(--accent);height:100%;width:${pct}%;"></div>
-        </div>
-        <span style="font-size:.75rem;font-weight:700;min-width:35px;">${pct}%</span>
-      </div></td></tr>`;
+    return '<tr>' +
+      '<td><strong>' + m + '</strong></td>' +
+      '<td>' + d.assigned + '</td>' +
+      '<td style="color:var(--success);font-weight:700;">' + d.done + '</td>' +
+      '<td style="color:' + (rem>0?'var(--danger)':'var(--muted)') + ';font-weight:700;">' + rem + '</td>' +
+      '<td><div style="display:flex;align-items:center;gap:.5rem;">' +
+        '<div style="flex:1;background:var(--border);height:8px;border-radius:4px;overflow:hidden;min-width:60px;">' +
+          '<div style="background:var(--accent);height:100%;width:' + pct + '%;"></div>' +
+        '</div>' +
+        '<span style="font-size:.75rem;font-weight:700;min-width:35px;">' + pct + '%</span>' +
+      '</div></td>' +
+    '</tr>';
   }).join('');
 }
 
@@ -1180,7 +1051,7 @@ function applyFilters(){
   const priority = document.getElementById('filter-priority').value;
   const status = document.getElementById('filter-status').value;
 
-  document.querySelectorAll('.task-row').forEach(row=>{
+  document.querySelectorAll('.task-row').forEach(function(row){
     const prio = row.getAttribute('data-priority');
     const sel = row.querySelector('.task-assignee');
     const cb = row.querySelector('.task-cb');
@@ -1200,7 +1071,7 @@ function applyFilters(){
     row.style.display = show ? '' : 'none';
   });
 
-  document.querySelectorAll('.card[data-section]').forEach(card=>{
+  document.querySelectorAll('.card[data-section]').forEach(function(card){
     const visible = card.querySelectorAll('.task-row:not([style*="display: none"])').length;
     card.style.display = visible>0 ? '' : 'none';
   });
@@ -1211,8 +1082,14 @@ function toggleExpand(id){
   const el = document.getElementById(id);
   if(el) el.style.display = (el.style.display==='block')?'none':'block';
 }
-function expandAll(){ document.querySelectorAll('.expand-content').forEach(el=>el.style.display='block'); showToast('Détails dépliés'); }
-function collapseAll(){ document.querySelectorAll('.expand-content').forEach(el=>el.style.display='none'); showToast('Détails repliés'); }
+function expandAll(){
+  document.querySelectorAll('.expand-content').forEach(function(el){ el.style.display='block'; });
+  showToast('Détails dépliés');
+}
+function collapseAll(){
+  document.querySelectorAll('.expand-content').forEach(function(el){ el.style.display='none'; });
+  showToast('Détails repliés');
+}
 
 /* ---------- VUE KANBAN ---------- */
 function switchView(view){
@@ -1232,27 +1109,26 @@ function switchView(view){
 
 function renderKanban(){
   const cols = {todo:[],progress:[],done:[]};
-  document.querySelectorAll('.task-row').forEach(row=>{
+  document.querySelectorAll('.task-row').forEach(function(row){
     const id = row.getAttribute('data-id');
-    const task = TASKS.find(t=>t.id===id);
+    const task = TASKS.find(function(t){ return t.id===id; });
     if(!task) return;
     const cb = row.querySelector('.task-cb');
     const sel = row.querySelector('.task-assignee');
     const isDone = cb && cb.checked;
     const assignee = sel ? sel.value : '';
     const dl = tasksMeta.deadlines[id] ? getDeadlineBadge(tasksMeta.deadlines[id]) : '';
-    const card = `
-      <div class="kanban-card ${task.priority.toLowerCase()}" onclick="document.getElementById('task-${id}').scrollIntoView({behavior:'smooth'})">
-        <strong>${task.id} · ${escapeHtml(task.title)}</strong>
-        <div style="font-size:.75rem;color:var(--muted);">${escapeHtml(task.scope)}</div>
-        ${dl}
-        <div class="meta">${assignee?('👤 '+assignee):'— non assignée —'} · ⏱ ${task.time}</div>
-      </div>`;
+    const card = '<div class="kanban-card ' + task.priority.toLowerCase() + '" onclick="document.getElementById(\'task-' + id + '\').scrollIntoView({behavior:\'smooth\'})">' +
+      '<strong>' + task.id + ' · ' + escapeHtml(task.title) + '</strong>' +
+      '<div style="font-size:.75rem;color:var(--muted);">' + escapeHtml(task.scope) + '</div>' +
+      dl +
+      '<div class="meta">' + (assignee?('👤 '+assignee):'— non assignée —') + ' · ⏱ ' + task.time + '</div>' +
+    '</div>';
     if(isDone) cols.done.push(card);
     else if(assignee) cols.progress.push(card);
     else cols.todo.push(card);
   });
-  ['todo','progress','done'].forEach(k=>{
+  ['todo','progress','done'].forEach(function(k){
     document.getElementById('kanban-list-'+k).innerHTML = cols[k].join('') || '<div style="font-size:.8rem;color:var(--muted);">Vide</div>';
     document.getElementById('kanban-count-'+k).textContent = cols[k].length;
   });
@@ -1261,7 +1137,8 @@ function renderKanban(){
 /* ---------- BADGES D'ALERTE HEADER ---------- */
 function updateAlertBadges(){
   const late=[]; const soon=[];
-  Object.entries(tasksMeta.deadlines).forEach(([id,date])=>{
+  Object.keys(tasksMeta.deadlines).forEach(function(id){
+    const date = tasksMeta.deadlines[id];
     if(!date) return;
     const row = document.getElementById('task-'+id);
     if(!row) return;
@@ -1272,8 +1149,8 @@ function updateAlertBadges(){
     else if(diff<=3) soon.push(id);
   });
   const html = [
-    late.length?`<span class="alert-badge danger">⚠️ ${late.length} en retard</span>`:'',
-    soon.length?`<span class="alert-badge warning">⏳ ${soon.length} ≤ 3 j</span>`:''
+    late.length ? '<span class="alert-badge danger">⚠️ ' + late.length + ' en retard</span>' : '',
+    soon.length ? '<span class="alert-badge warning">⏳ ' + soon.length + ' ≤ 3 j</span>' : ''
   ].join('');
   document.getElementById('alert-badges').innerHTML = html;
 }
@@ -1282,7 +1159,7 @@ function updateAlertBadges(){
 function logAudit(action, taskId, detail){
   try{
     const list = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]');
-    list.unshift({user:currentUser||'Anonyme', action, taskId, detail:detail||'', date:new Date().toISOString()});
+    list.unshift({user:currentUser||'Anonyme', action:action, taskId:taskId, detail:detail||'', date:new Date().toISOString()});
     localStorage.setItem(AUDIT_KEY, JSON.stringify(list.slice(0,200)));
     renderAudit();
   }catch(e){}
@@ -1291,12 +1168,13 @@ function renderAudit(){
   const list = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]').slice(0,50);
   const el = document.getElementById('audit-list');
   if(!el) return;
-  el.innerHTML = list.length ? list.map(e=>`
-    <div class="audit-entry">
-      <span class="who">${escapeHtml(e.user)}</span> ${escapeHtml(e.action)} <strong>${escapeHtml(e.taskId)}</strong>
-      ${e.detail?`<div style="font-size:.75rem;color:var(--text);margin-top:.15rem;">${escapeHtml(e.detail)}</div>`:''}
-      <span class="when">${fmtDate(e.date)}</span>
-    </div>`).join('') : '<p style="color:var(--muted);font-size:.85rem;">Aucune activité enregistrée.</p>';
+  el.innerHTML = list.length ? list.map(function(e){
+    return '<div class="audit-entry">' +
+      '<span class="who">' + escapeHtml(e.user) + '</span> ' + escapeHtml(e.action) + ' <strong>' + escapeHtml(e.taskId) + '</strong>' +
+      (e.detail ? '<div style="font-size:.75rem;color:var(--text);margin-top:.15rem;">' + escapeHtml(e.detail) + '</div>' : '') +
+      '<span class="when">' + fmtDate(e.date) + '</span>' +
+    '</div>';
+  }).join('') : '<p style="color:var(--muted);font-size:.85rem;">Aucune activité enregistrée.</p>';
 }
 function toggleAuditPanel(){
   document.getElementById('audit-panel').classList.toggle('open');
@@ -1306,44 +1184,46 @@ function toggleAuditPanel(){
 /* ---------- EXPORT / IMPORT ---------- */
 function exportJSON(){
   const state = {};
-  document.querySelectorAll('.task-row').forEach(row=>{
+  document.querySelectorAll('.task-row').forEach(function(row){
     const id = row.getAttribute('data-id');
     const cb = row.querySelector('.task-cb');
     const sel = row.querySelector('.task-assignee');
     state[id] = {checked: cb?cb.checked:false, assignee: sel?sel.value:''};
   });
   const data = {
-    exportDate: new Date().toISOString(), exportedBy: currentUser||'anonyme',
+    exportDate: new Date().toISOString(),
+    exportedBy: currentUser||'anonyme',
     tasks: state,
     meta: tasksMeta,
     audit: JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]')
   };
   downloadFile(JSON.stringify(data,null,2),
-    `kaly-livrer-taches-${new Date().toISOString().slice(0,10)}.json`,'application/json');
-  showToast('Export JSON téléchargé','success');
+    'kaly-livrer-taches-' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
+  showToast('Export JSON téléchargé', 'success');
 }
 
 function exportCSV(){
-  const rows = [['ID','Tâche','Priorité','Assigné à','Statut','Temps','Deadline','Sous-tâches']];
-  document.querySelectorAll('.task-row').forEach(row=>{
+  const rows = [['ID','Tache','Priorite','Assigne','Statut','Temps','Deadline','Sous-taches']];
+  document.querySelectorAll('.task-row').forEach(function(row){
     const id = row.getAttribute('data-id');
-    const task = TASKS.find(t=>t.id===id); if(!task) return;
+    const task = TASKS.find(function(t){ return t.id===id; });
+    if(!task) return;
     const cb = row.querySelector('.task-cb');
     const sel = row.querySelector('.task-assignee');
-    const subs = (tasksMeta.subtasks[id]||[]);
-    const subStr = subs.map(s=>`${s.done?'[x]':'[ ]'} ${s.text}`).join(' | ');
-    rows.push([id, task.title, task.priority, sel?sel.value:'', cb&&cb.checked?'Terminée':'À faire', task.time, tasksMeta.deadlines[id]||'', subStr]);
+    const subs = tasksMeta.subtasks[id] || [];
+    const subStr = subs.map(function(s){ return (s.done?'[x]':'[ ]') + ' ' + s.text; }).join(' | ');
+    rows.push([id, task.title, task.priority, sel?sel.value:'', cb&&cb.checked?'Terminee':'A faire', task.time, tasksMeta.deadlines[id]||'', subStr]);
   });
-  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  downloadFile('\uFEFF'+csv, `kaly-livrer-taches-${new Date().toISOString().slice(0,10)}.csv`,'text/csv');
-  showToast('Export CSV téléchargé','success');
+  const csv = rows.map(function(r){ return r.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+  downloadFile('\uFEFF'+csv, 'kaly-livrer-taches-' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv');
+  showToast('Export CSV téléchargé', 'success');
 }
 
 function downloadFile(content, filename, mime){
   const blob = new Blob([content],{type:mime});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href=url; a.download=filename;
+  a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
@@ -1351,11 +1231,11 @@ function downloadFile(content, filename, mime){
 function importJSON(event){
   const file = event.target.files[0]; if(!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = function(e){
     try{
       const data = JSON.parse(e.target.result);
       const tasks = data.tasks || data;
-      if(!confirm(`Importer ${Object.keys(tasks).length} tâches ? Cela écrasera l'état actuel.`)) return;
+      if(!confirm('Importer ' + Object.keys(tasks).length + ' tâches ? Cela écrasera l\'état actuel.')) return;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
       if(data.meta){
         localStorage.setItem(SUBTASKS_KEY, JSON.stringify(data.meta.subtasks||{}));
@@ -1364,47 +1244,258 @@ function importJSON(event){
         loadMeta();
       }
       if(data.audit) localStorage.setItem(AUDIT_KEY, JSON.stringify(data.audit));
-      renderAllRows(); applyStateToUI(tasks); renderAudit();
-      showToast('Import réussi','success');
-    }catch(err){ showToast('Erreur d\'import : fichier invalide','error'); }
+      renderAllRows();
+      applyStateToUI(tasks);
+      renderAudit();
+      showToast('Import réussi', 'success');
+    }catch(err){ showToast('Erreur d\'import : fichier invalide', 'error'); }
   };
   reader.readAsText(file);
-  event.target.value='';
+  event.target.value = '';
 }
 
 /* ---------- UTILS ---------- */
 function escapeHtml(s){
-  return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
 }
 function fmtDate(iso){
   try{ return new Date(iso).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
   catch(e){ return iso; }
 }
-function showToast(message, type=''){
+function showToast(message, type){
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
-  t.className = 'toast '+type;
+  t.className = 'toast ' + (type||'');
   t.textContent = message;
   c.appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); },3000);
+  setTimeout(function(){
+    t.style.opacity = '0';
+    t.style.transition = 'opacity .3s';
+    setTimeout(function(){ t.remove(); }, 300);
+  }, 3000);
+}
+
+/* ---------- RETOUR EN HAUT ---------- */
+function scrollToTop(){
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function updateBackToTopVisibility(){
+  const btn = document.getElementById('back-to-top');
+  if(!btn) return;
+  if(window.scrollY > 400) btn.classList.add('visible');
+  else btn.classList.remove('visible');
+}
+window.addEventListener('scroll', updateBackToTopVisibility, {passive:true});
+
+/* ═══════════════════════════════════════════════════════
+   MODÈLES PRÉ-REMPLIS PAR TÂCHE
+   ═══════════════════════════════════════════════════════ */
+const TASK_TEMPLATES = {
+  'GEO-001': 'MENTIONS LÉGALES — KALY LIVRER\n\nÉditeur du site\nRaison sociale : RAPEX SARL\nEnseigne commerciale : Kaly Livrer\nForme juridique : SARL\nCapital social : [À COMPLÉTER] Ar\nSiège social : Antananarivo, Madagascar\nNIF : [À COMPLÉTER]\nSTAT : [À COMPLÉTER]\nRCS : [À COMPLÉTER]\n\nDirecteur de la publication\nNom : [Eric / Miora]\nEmail : contact@kaly-livrer.com\n\nHébergeur\nNom : Render Services Inc.\nAdresse : 525 Brannan St, San Francisco, CA 94107, USA\n\nPropriété intellectuelle\nL\'ensemble du contenu est protégé. Toute reproduction sans autorisation est interdite.',
+  'GEO-002': 'CONTACTS OFFICIELS — KALY LIVRER\n\nSupport client (commandes, livraisons)\nTéléphone : +261 XX XX XXX XX\nEmail : support@kaly-livrer.com\nHoraires : Lun-Dim 08h00-20h00\n\nPartenariats restaurants (B2B)\nTéléphone : +261 XX XX XXX XX\nEmail : partenaires@kaly-livrer.com\nHoraires : Lun-Ven 09h00-17h00\n\nPresse & communication\nEmail : presse@kaly-livrer.com\n\nRéseaux sociaux\nFacebook : @kalylivrer\nInstagram : @kaly.livrer',
+  'GEO-003': 'MODIFICATION HTML — LANGUE DÉCLARÉE\n\nAvant :\n<html lang="en">\n\nAprès :\n<html lang="fr-MG">',
+  'GEO-004': 'GABARIT GLOBAL — UNE SEULE META DESCRIPTION\n\n<head>\n  <meta charset="UTF-8">\n  <title>{titre_dynamique}</title>\n  <meta name="description" content="{description_dynamique}">\n  <!-- Ne pas ajouter d\'autre meta description -->\n</head>',
+  'GEO-005': 'FORMULATIONS CERTIFIÉES — ACCUEIL\n\nÀ remplacer partout :\n\nNON : "Livraison en 30 minutes"\nOUI : "Livraison moyenne en 35 à 45 minutes selon votre zone"\n\nNON : "+500 plats disponibles"\nOUI : "Plus de [X] restaurants partenaires à Antananarivo"\n\nNON : "Note 4.8/5"\nOUI : "Note moyenne de [X]/5 basée sur les avis clients vérifiés"\n\nNON : "N°1 à Madagascar"\nOUI : "Service de livraison de repas à Antananarivo"\n\nRègle : toute affirmation chiffrée doit être sourçable.',
+  'GEO-006': 'PAGES LÉGALES — KALY LIVRER\n\n--- CGU ---\n1. Objet : accès au service de commande de repas\n2. Compte utilisateur : responsabilité des identifiants\n3. Commandes : validation, paiement MVola/espèces\n4. Livraison : zones, délais, frais\n5. Annulation : politique et remboursement\n6. Responsabilité : RAPEX SARL n\'est pas producteur\n7. Données personnelles : voir Politique de confidentialité\n8. Droit applicable : droit malgache\n\n--- POLITIQUE DE CONFIDENTIALITÉ ---\nDonnées collectées : nom, téléphone, adresse, historique\nFinalité : traitement des commandes\nBase légale : exécution du contrat\nConservation : 3 ans après dernière commande\nDroits : accès, rectification, suppression\nContact DPO : contact@kaly-livrer.com',
+  'GEO-007': 'GRILLE TARIFAIRE — LIVRAISON ANTANANARIVO\n\nZone 1 — Centre-ville\nAnalakely, Antaninarenina, Tsaralalàna\nFrais : [X] Ar — Délai : 20-30 min\n\nZone 2 — Quartiers d\'affaires\nIvandry, Ankorondrano, Ankadifotsy\nFrais : [Y] Ar — Délai : 30-40 min\n\nZone 3 — Périphérie\nItaosy, Ambohidratrimo, Talatamaty\nFrais : [Z] Ar — Délai : 40-55 min\n\nHoraires : 08h00 – 20h00 (7j/7)\nPaiement : Espèces / MVola',
+  'GEO-008': 'SSR — CATALOGUE /plats-et-produits\n\nLe HTML brut doit contenir AVANT tout JavaScript :\n\n<h1>Plats et produits livrés à Antananarivo</h1>\n<section class="catalogue">\n  <article class="plat">\n    <h2>Ravitoto sy henakisoa</h2>\n    <p class="prix">15 000 Ar</p>\n    <img src="/img/ravitoto.webp" alt="Ravitoto livré à Antananarivo">\n  </article>\n</section>\n\nVérification :\ncurl https://kaly-livrer.com/plats-et-produits | grep "Ravitoto"',
+  'GEO-009': 'JSON-LD ORGANIZATION + WEBSITE\n\nÀ inclure dans le <head> de chaque page :\n\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@graph": [\n    {\n      "@type": "Organization",\n      "@id": "https://kaly-livrer.com/#organization",\n      "name": "Kaly Livrer",\n      "legalName": "RAPEX SARL",\n      "url": "https://kaly-livrer.com/",\n      "logo": "https://kaly-livrer.com/img/logo.png",\n      "email": "contact@kaly-livrer.com",\n      "telephone": "+261XXXXXXXXX",\n      "address": {\n        "@type": "PostalAddress",\n        "addressLocality": "Antananarivo",\n        "addressCountry": "MG"\n      }\n    },\n    {\n      "@type": "WebSite",\n      "@id": "https://kaly-livrer.com/#website",\n      "url": "https://kaly-livrer.com/",\n      "name": "Kaly Livrer",\n      "publisher": { "@id": "https://kaly-livrer.com/#organization" },\n      "inLanguage": "fr-MG"\n    }\n  ]\n}\n<\/script>',
+  'GEO-010': 'JSON-LD PRODUCT (par plat)\n\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Product",\n  "name": "Ravitoto sy henakisoa",\n  "image": "https://kaly-livrer.com/img/ravitoto.webp",\n  "sku": "PLAT-001",\n  "brand": { "@type": "Brand", "name": "Kaly Livrer" },\n  "offers": {\n    "@type": "Offer",\n    "priceCurrency": "MGA",\n    "price": "15000",\n    "availability": "https://schema.org/InStock"\n  }\n}\n<\/script>',
+  'GEO-011': 'LANDING B2B — DEVENIR PARTENAIRE\n\nTITLE:\nDevenir restaurant partenaire à Antananarivo | Kaly Livrer\n\nH1:\nDéveloppez vos ventes avec la livraison à Antananarivo\n\nSection 1 — Pourquoi nous rejoindre\n- Clients actifs à Antananarivo\n- Livraison en 35-45 min en moyenne\n- Paiement MVola sécurisé\n- Support dédié 7j/7\n\nSection 2 — Taux de commission\nCommission : [X]% par commande\nFrais d\'inscription : 0 Ar\nPaiement : hebdomadaire (MVola / virement)\n\nCTA:\nTéléphone : +261 XX XX XXX XX\nEmail : partenaires@kaly-livrer.com',
+  'GEO-012': 'FAQ TRANSACTIONNELLE — /aide\n\nQ : Comment passer une commande ?\nR : Téléchargez l\'app ou commandez sur kaly-livrer.com.\n\nQ : Puis-je commander sans compte ?\nR : Oui, la commande invité est disponible.\n\nQ : Quels sont les modes de paiement acceptés ?\nR : MVola (Mobile Money) et espèces à la livraison.\n\nQ : Le paiement MVola est-il sécurisé ?\nR : Oui, toutes les transactions passent par l\'API officielle.\n\nQ : Quels sont les délais de livraison ?\nR : 20-30 min centre, 30-45 min quartiers, 40-55 min périphérie.\n\nQ : Livrez-vous la nuit ?\nR : Non, nos livraisons s\'effectuent de 08h00 à 20h00.',
+  'GEO-013': 'TITLES, H1 & OPEN GRAPH\n\n<title>Plats et produits livrés à Antananarivo | Kaly Livrer</title>\n<meta name="description" content="Commandez vos repas en ligne à Antananarivo. Livraison en 35-45 min.">\n<link rel="canonical" href="https://kaly-livrer.com/plats-et-produits">\n\n<meta property="og:type" content="website">\n<meta property="og:title" content="Plats et produits livrés à Antananarivo | Kaly Livrer">\n<meta property="og:description" content="Commandez vos repas en ligne. Livraison rapide à Antananarivo.">\n<meta property="og:url" content="https://kaly-livrer.com/plats-et-produits">\n<meta property="og:image" content="https://kaly-livrer.com/img/og-catalogue.jpg">\n<meta property="og:locale" content="fr_MG">\n\n<meta name="twitter:card" content="summary_large_image">',
+  'GEO-014': 'NOINDEX SUR ROUTES PRIVÉES\n\n/panier et /compte : à placer dans <head>\n\n<meta name="robots" content="noindex, nofollow">\n\nExemple Next.js :\nexport const metadata = {\n  robots: { index: false, follow: false }\n};',
+  'GEO-015': 'ROBOTS.TXT & SITEMAP.XML\n\n--- /robots.txt ---\nUser-agent: *\nAllow: /\nDisallow: /panier\nDisallow: /compte\nDisallow: /admin\nDisallow: /api/\n\nSitemap: https://kaly-livrer.com/sitemap.xml\n\n--- /sitemap.xml ---\n<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>https://kaly-livrer.com/</loc>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>\n  <url>\n    <loc>https://kaly-livrer.com/plats-et-produits</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n</urlset>',
+  'GEO-016': 'REDIRECTIONS 301\n\n--- _redirects (Netlify) ---\n/plats&produits    /plats-et-produits    301\n/a-propos&equipe   /a-propos             301\n\n--- Express ---\napp.get(\'/plats&produits\', (req,res) => {\n  res.redirect(301, \'/plats-et-produits\');\n});',
+  'GEO-017': 'BREADCRUMB HTML + JSON-LD\n\n<nav aria-label="Fil d\'Ariane">\n  <ol>\n    <li><a href="/">Accueil</a></li>\n    <li><a href="/plats-et-produits">Plats & produits</a></li>\n    <li aria-current="page">Ravitoto sy henakisoa</li>\n  </ol>\n</nav>\n\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "BreadcrumbList",\n  "itemListElement": [\n    { "@type": "ListItem", "position": 1, "name": "Accueil",\n      "item": "https://kaly-livrer.com/" },\n    { "@type": "ListItem", "position": 2, "name": "Plats & produits",\n      "item": "https://kaly-livrer.com/plats-et-produits" }\n  ]\n}\n<\/script>',
+  'GEO-018': 'IMAGES & PERFORMANCE WEB\n\n<picture>\n  <source srcset="/img/ravitoto.avif" type="image/avif">\n  <source srcset="/img/ravitoto.webp" type="image/webp">\n  <img src="/img/ravitoto.jpg"\n       alt="Ravitoto sy henakisoa livré à Antananarivo"\n       width="400" height="300"\n       loading="lazy" decoding="async">\n</picture>\n\nObjectifs Core Web Vitals :\n- LCP < 2.5s\n- INP < 200ms\n- CLS < 0.1\n\nChecklist :\n[ ] Images en WebP/AVIF\n[ ] Attribut alt descriptif\n[ ] width/height définis\n[ ] loading="lazy" sauf hero',
+  'GEO-019': 'COHÉRENCE EXTERNE — CHECKLIST\n\n[ ] Facebook\n    - Nom : Kaly Livrer\n    - Adresse identique au site\n    - Téléphone officiel\n    - Lien vers https://kaly-livrer.com\n\n[ ] Instagram\n    - Bio avec lien direct\n    - Logo identique\n    - Localisation Antananarivo\n\n[ ] Google Business Profile\n    - Raison sociale : RAPEX SARL / Kaly Livrer\n    - Horaires : 08h-20h\n    - Photos récentes',
+  'GEO-020': 'MESURE DE VISIBILITÉ IA — PANEL 50 PROMPTS\n\nCatégorie 1 : Découverte (10 prompts)\n"Quel service permet de commander un repas à Antananarivo ?"\n\nCatégorie 2 : Zone (15 prompts)\n"Comment se faire livrer un plat à Ivandry ?"\n\nCatégorie 3 : Type de plat (15 prompts)\n"Livraison de pizza à Antananarivo ?"\n\nCatégorie 4 : Marque (10 prompts)\n"Kaly Livrer avis ?"\n\nTableau de suivi mensuel :\n| Prompt | Marque citée | Position | Source | Date |',
+  'GEO-021': 'MODÈLE LANDING PAR QUARTIER\n\nExemple : /livraison-ivandry\n\nTITLE:\nLivraison de repas à Ivandry | Kaly Livrer\n\nH1:\nVos restaurants préférés livrés chez vous à Ivandry\n\nINTRO:\nIvandry fait partie de la zone 2 de notre réseau. Comptez 30 à 40 minutes.\n\nSECTION — Frais et délais\nZone : 2\nFrais : [Y] Ar\nDélai moyen : 30-40 min\n\nCTA:\nCommandez maintenant -> [Lien]',
+  'GEO-022': '# Kaly Livrer\n\n> Plateforme de commande de plats et produits à Antananarivo, Madagascar.\n\n## Liens principaux\n- [Accueil](https://kaly-livrer.com/)\n- [Catalogue](https://kaly-livrer.com/plats-et-produits)\n- [Devenir partenaire](https://kaly-livrer.com/devenir-partenaire)\n- [FAQ](https://kaly-livrer.com/aide)\n- [Contact](https://kaly-livrer.com/contact)\n\n## Informations\n- Éditeur : RAPEX SARL (Kaly Livrer)\n- Zone : Antananarivo, Madagascar\n- Paiement : MVola, espèces\n- Horaires : 08h00 – 20h00'
+};
+
+function getTemplate(taskId){ return TASK_TEMPLATES[taskId] || ''; }
+
+function getExtForTask(taskId){
+  const map = {
+    'GEO-001':'md','GEO-002':'md','GEO-005':'md','GEO-007':'md',
+    'GEO-019':'md','GEO-020':'md',
+    'GEO-006':'md','GEO-011':'md','GEO-012':'md','GEO-021':'md',
+    'GEO-003':'html','GEO-004':'html','GEO-008':'html','GEO-009':'html',
+    'GEO-010':'html','GEO-013':'html','GEO-014':'html','GEO-015':'txt',
+    'GEO-016':'txt','GEO-017':'html','GEO-018':'html','GEO-022':'txt'
+  };
+  return map[taskId] || 'txt';
+}
+
+function copyTemplate(taskId, btn){
+  const tpl = getTemplate(taskId);
+  if(!tpl) return;
+  navigator.clipboard.writeText(tpl).then(function(){
+    const old = btn.innerText;
+    btn.innerText = '✅ Copié !';
+    btn.classList.add('copied');
+    showToast('Modèle copié', 'success');
+    setTimeout(function(){ btn.innerText = old; btn.classList.remove('copied'); }, 2000);
+  }).catch(function(){ showToast('Impossible de copier', 'error'); });
+}
+
+function downloadTemplate(taskId){
+  const tpl = getTemplate(taskId);
+  if(!tpl) return;
+  const ext = getExtForTask(taskId);
+  downloadFile(tpl, taskId + '-modele.' + ext, 'text/plain');
+  showToast('Fichier téléchargé', 'success');
+}
+
+/* ═══════════════════════════════════════════════════════
+   GÉNÉRATION DU LIVRABLE ZIP
+   ═══════════════════════════════════════════════════════ */
+function generateFinalZip(){
+  const state = {};
+  document.querySelectorAll('.task-row').forEach(function(row){
+    const id = row.getAttribute('data-id');
+    const cb = row.querySelector('.task-cb');
+    const sel = row.querySelector('.task-assignee');
+    state[id] = {checked: cb?cb.checked:false, assignee: sel?sel.value:''};
+  });
+  const done = Object.values(state).filter(function(t){ return t.checked; }).length;
+  const total = Object.keys(state).length;
+  if(!confirm('Générer le livrable final ?\n\nAvancement : ' + done + '/' + total + ' tâches cochées.\n\nLe ZIP contiendra tous les modèles organisés par catégorie.')) return;
+  runZipGeneration(state);
+}
+
+function runZipGeneration(state){
+  if(!window.JSZip){ showToast('JSZip non chargé', 'error'); return; }
+
+  const progModal = document.createElement('div');
+  progModal.className = 'zip-modal';
+  progModal.id = 'zip-progress-modal';
+  progModal.innerHTML = '<div class="zip-modal-content">' +
+    '<h3 class="zip-modal-title">📦 Génération en cours…</h3>' +
+    '<p class="zip-modal-sub">Création de l\'archive…</p>' +
+    '<div class="zip-progress-list" id="zip-progress-list"></div>' +
+    '</div>';
+  document.body.appendChild(progModal);
+
+  const list = document.getElementById('zip-progress-list');
+  const logStep = function(label, status){
+    const item = document.createElement('div');
+    item.className = 'zip-progress-item ' + (status || 'active');
+    item.innerHTML = '<span class="icon">' + (status==='done'?'✅':'⏳') + '</span> ' + label;
+    list.appendChild(item);
+    list.scrollTop = list.scrollHeight;
+    return item;
+  };
+
+  const zip = new JSZip();
+  const root = zip.folder('kaly-livrer-audit-geo-livrable');
+
+  const s1 = logStep('Création du dossier racine…');
+  const sections = {
+    po: {name:'01-PO-commercial', tasks:[]},
+    juridique: {name:'02-Juridique-redac', tasks:[]},
+    dev: {name:'03-Dev-SEO', tasks:[]}
+  };
+  document.querySelectorAll('.task-row').forEach(function(row){
+    const id = row.getAttribute('data-id');
+    const sec = row.getAttribute('data-section');
+    if(sections[sec]) sections[sec].tasks.push(id);
+  });
+  s1.classList.remove('active'); s1.classList.add('done');
+
+  const s2 = logStep('Génération des modèles…');
+  Object.keys(sections).forEach(function(secKey){
+    const sec = sections[secKey];
+    const folder = root.folder(sec.name);
+    sec.tasks.forEach(function(taskId){
+      const tpl = getTemplate(taskId);
+      if(!tpl) return;
+      const ext = getExtForTask(taskId);
+      folder.file(taskId + '-modele.' + ext, tpl);
+    });
+  });
+  s2.classList.remove('active'); s2.classList.add('done');
+
+  const s3 = logStep('Génération des rapports…');
+  const reportsFolder = root.folder('_rapports');
+
+  reportsFolder.file('avancement.json', JSON.stringify({
+    generateLe: new Date().toISOString(),
+    utilisateur: currentUser || 'anonyme',
+    taches: state
+  }, null, 2));
+
+  const csvLines = ['ID,Tache,Priorite,Assigne,Statut,Temps'];
+  document.querySelectorAll('.task-row').forEach(function(row){
+    const id = row.getAttribute('data-id');
+    const task = TASKS.find(function(t){ return t.id===id; });
+    if(!task) return;
+    const sel = row.querySelector('.task-assignee');
+    csvLines.push([id, '"' + task.title.replace(/"/g,'""') + '"', task.priority, sel ? sel.value : '', state[id] && state[id].checked ? 'Terminee' : 'A faire', task.time].join(','));
+  });
+  reportsFolder.file('avancement.csv', '\uFEFF' + csvLines.join('\n'));
+
+  const audit = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]');
+  reportsFolder.file('historique.json', JSON.stringify(audit, null, 2));
+
+  s3.classList.remove('active'); s3.classList.add('done');
+
+  const s4 = logStep('Compression…');
+  zip.generateAsync({type:'blob', compression:'DEFLATE', compressionOptions:{level:6}}).then(function(blob){
+    s4.classList.remove('active'); s4.classList.add('done');
+
+    const s5 = logStep('Téléchargement…', 'active');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'kaly-livrer-audit-geo-livrable-' + new Date().toISOString().slice(0,10) + '.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    s5.classList.remove('active'); s5.classList.add('done');
+
+    setTimeout(function(){
+      const m = document.getElementById('zip-progress-modal');
+      if(m) m.remove();
+      showToast('✅ Livrable ZIP généré et téléchargé !', 'success');
+      logAudit('génération ZIP', 'TOUTES', Object.keys(state).length + ' tâches');
+    }, 800);
+  }).catch(function(err){
+    console.error(err);
+    showToast('Erreur lors de la génération', 'error');
+    const m = document.getElementById('zip-progress-modal');
+    if(m) m.remove();
+  });
 }
 
 /* ---------- RACCOURCIS ---------- */
 function setupKeyboardShortcuts(){
-  document.addEventListener('keydown', e=>{
+  document.addEventListener('keydown', function(e){
     if((e.ctrlKey||e.metaKey) && e.key==='k'){
       e.preventDefault();
       const i = document.getElementById('search-input');
       if(i && !document.getElementById('main-content').classList.contains('disabled')) i.focus();
     }
     if(e.key==='Escape'){
-      document.querySelectorAll('.expand-content').forEach(el=>el.style.display='none');
+      document.querySelectorAll('.expand-content').forEach(function(el){ el.style.display='none'; });
       document.getElementById('audit-panel').classList.remove('open');
+    }
+    if(e.key==='Home' && ['INPUT','TEXTAREA','SELECT'].indexOf(e.target.tagName) === -1){
+      e.preventDefault();
+      scrollToTop();
     }
   });
 }
 
-window.addEventListener('beforeunload', ()=>{ if(currentUser) saveTasksState(); });
+window.addEventListener('beforeunload', function(){
+  if(currentUser) saveTasksState();
+});
 </script>
 </body>
 </html>
