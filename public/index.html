@@ -565,6 +565,19 @@ let auditInitialized = false;
 let presenceSessionId = null;
 let presenceHeartbeatTimer = null;
 let broadcastSeenIds = new Set();
+let commentsSyncInProgress = false;
+let commentsSyncWarningShown = false;
+let sharedMetaSyncInProgress = false;
+let sharedMetaSavePending = 0;
+let sharedMetaSaveQueue = Promise.resolve();
+let sharedMetaDirty = false;
+let sharedMetaChangedTasks = new Set();
+let sharedMetaWarningShown = false;
+let taskSyncInProgress = false;
+let taskSavePending = 0;
+let taskSaveQueue = Promise.resolve();
+let taskDirtyIds = new Set();
+let taskSyncWarningShown = false;
 
 /* ---------- DONNÉES STATIQUES DES TÂCHES ---------- */
 const TASKS = [
@@ -598,6 +611,15 @@ document.addEventListener('DOMContentLoaded', () => {
   loadMeta();
   tryFetchSystemUsers();
   renderAllRows();
+  refreshSharedMeta();
+  window.setInterval(refreshSharedMeta, 10000);
+  window.addEventListener('focus', refreshSharedMeta);
+  refreshComments();
+  window.setInterval(refreshComments, 10000);
+  window.addEventListener('focus', refreshComments);
+  refreshTasksState();
+  window.setInterval(refreshTasksState, 10000);
+  window.addEventListener('focus', refreshTasksState);
   setupKeyboardShortcuts();
   updateBackToTopVisibility();
   try{
@@ -648,6 +670,140 @@ function saveMeta(){
   }catch(e){}
 }
 
+function ensureSubtaskIds(){
+  Object.keys(tasksMeta.subtasks).forEach(function(taskId){
+    const items = tasksMeta.subtasks[taskId];
+    if(!Array.isArray(items)) return;
+    items.forEach(function(item){
+      if(item && !item.id) item.id = createCommentId();
+    });
+  });
+}
+
+function hasSharedMetaData(meta){
+  return Object.keys(meta.subtasks || {}).some(function(taskId){
+    return Array.isArray(meta.subtasks[taskId]) && meta.subtasks[taskId].length > 0;
+  }) || Object.keys(meta.deadlines || {}).some(function(taskId){
+    return Boolean(meta.deadlines[taskId]);
+  });
+}
+
+function syncSharedMeta(taskIds){
+  ensureSubtaskIds();
+  saveMeta();
+  const changed = Array.isArray(taskIds) ? taskIds : [taskIds];
+  changed.forEach(function(taskId){ if(typeof taskId === 'string') sharedMetaChangedTasks.add(taskId); });
+  const ids = Array.from(sharedMetaChangedTasks);
+  if(!ids.length) return;
+  ids.forEach(function(taskId){ sharedMetaChangedTasks.delete(taskId); });
+  const payloadData = {taskIds:ids,subtasks:{},deadlines:{}};
+  ids.forEach(function(taskId){
+    payloadData.subtasks[taskId] = tasksMeta.subtasks[taskId] || [];
+    payloadData.deadlines[taskId] = tasksMeta.deadlines[taskId] || '';
+  });
+  sharedMetaSavePending++;
+  sharedMetaDirty = true;
+  const payload = JSON.stringify(payloadData);
+  sharedMetaSaveQueue = sharedMetaSaveQueue.catch(function(){})
+    .then(function(){
+      return fetch('/api/meta', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:payload
+      }).then(function(response){
+        if(!response.ok) throw new Error('HTTP ' + response.status);
+      });
+    }).then(function(){
+      sharedMetaWarningShown = false;
+    }).catch(function(error){
+      console.error('Impossible de sauvegarder les sous-tâches et échéances partagées:', error);
+      sharedMetaDirty = true;
+      ids.forEach(function(taskId){ sharedMetaChangedTasks.add(taskId); });
+      if(!sharedMetaWarningShown){
+        sharedMetaWarningShown = true;
+        showToast('Les sous-tâches et échéances ne peuvent pas être partagées pour le moment.', 'error');
+      }
+    }).finally(function(){
+      sharedMetaSavePending--;
+      if(sharedMetaSavePending === 0 && !sharedMetaWarningShown && !sharedMetaChangedTasks.size) sharedMetaDirty = false;
+    });
+}
+
+function refreshSharedMeta(){
+  if(sharedMetaSyncInProgress || sharedMetaSavePending) return Promise.resolve();
+  if(sharedMetaDirty){
+    syncSharedMeta();
+    return Promise.resolve();
+  }
+  sharedMetaSyncInProgress = true;
+
+  return fetch('/api/meta').then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(remote){
+    if(!remote || !remote.subtasks || typeof remote.subtasks !== 'object' || Array.isArray(remote.subtasks) ||
+       !remote.deadlines || typeof remote.deadlines !== 'object' || Array.isArray(remote.deadlines)){
+      throw new Error('Format des métadonnées invalide');
+    }
+
+    ensureSubtaskIds();
+    if(!hasSharedMetaData(remote) && hasSharedMetaData(tasksMeta)){
+      sharedMetaDirty = true;
+      syncSharedMeta(TASKS.map(function(task){ return task.id; }));
+      return;
+    }
+
+    const sharedSubtasks = Object.assign({}, remote.subtasks);
+    const sharedDeadlines = Object.assign({}, remote.deadlines);
+    const migratedTaskIds = new Set();
+    Object.keys(tasksMeta.subtasks).forEach(function(taskId){
+      const localItems = tasksMeta.subtasks[taskId];
+      if(!Array.isArray(localItems)) return;
+      if(!Array.isArray(sharedSubtasks[taskId])) sharedSubtasks[taskId] = [];
+      const sharedIds = new Set(sharedSubtasks[taskId].map(function(item){ return item && item.id; }));
+      localItems.forEach(function(item){
+        if(item && item.id && !sharedIds.has(item.id)){
+          sharedSubtasks[taskId].push(item);
+          sharedIds.add(item.id);
+          migratedTaskIds.add(taskId);
+        }
+      });
+    });
+    Object.keys(tasksMeta.deadlines).forEach(function(taskId){
+      if(tasksMeta.deadlines[taskId] && !sharedDeadlines[taskId]){
+        sharedDeadlines[taskId] = tasksMeta.deadlines[taskId];
+        migratedTaskIds.add(taskId);
+      }
+    });
+
+    const changedTasks = new Set();
+    const allTaskIds = new Set(Object.keys(tasksMeta.subtasks)
+      .concat(Object.keys(sharedSubtasks), Object.keys(tasksMeta.deadlines), Object.keys(sharedDeadlines)));
+    allTaskIds.forEach(function(taskId){
+      if(JSON.stringify(tasksMeta.subtasks[taskId] || []) !== JSON.stringify(sharedSubtasks[taskId] || []) ||
+         (tasksMeta.deadlines[taskId] || '') !== (sharedDeadlines[taskId] || '')){
+        changedTasks.add(taskId);
+      }
+    });
+    tasksMeta.subtasks = sharedSubtasks;
+    tasksMeta.deadlines = sharedDeadlines;
+    saveMeta();
+    changedTasks.forEach(rerenderTaskInline);
+    applyDeadlinesFromData();
+    if(migratedTaskIds.size) syncSharedMeta(Array.from(migratedTaskIds));
+    sharedMetaDirty = false;
+    sharedMetaWarningShown = false;
+  }).catch(function(error){
+    console.error('Impossible de charger les sous-tâches et échéances partagées:', error);
+    if(!sharedMetaWarningShown){
+      sharedMetaWarningShown = true;
+      showToast('Les sous-tâches et échéances restent locales : serveur indisponible.', 'error');
+    }
+  }).finally(function(){
+    sharedMetaSyncInProgress = false;
+  });
+}
+
 /* ---------- RENDU DES LIGNES ---------- */
 function renderAllRows(){
   const groups = {po:[],juridique:[],dev:[]};
@@ -661,7 +817,6 @@ function renderAllRows(){
 
 function renderRow(t){
   const subtasks = tasksMeta.subtasks[t.id] || [];
-  const comments = tasksMeta.comments[t.id] || [];
   const deadline = tasksMeta.deadlines[t.id] || '';
   const dl = deadline ? getDeadlineBadge(deadline) : '';
 
@@ -686,14 +841,7 @@ function renderRow(t){
 
   const commentsHtml = [
     '<div class="comments">',
-    '<div id="cmt-list-'+t.id+'">',
-    comments.length ? comments.map(c=>
-      '<div class="comment">' +
-        '<div class="comment-head"><span>💬 ' + escapeHtml(c.user) + '</span><span>' + fmtDate(c.date) + '</span></div>' +
-        '<div class="comment-body">' + escapeHtml(c.text) + '</div>' +
-      '</div>'
-    ).join('') : '',
-    '</div>',
+    '<div id="cmt-list-'+t.id+'">' + renderCommentList(t.id) + '</div>',
     '<div class="comment-add">',
     '<textarea placeholder="Ajouter un commentaire…" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();addComment(\'' + t.id + '\',this.value);this.value=\'\';}"></textarea>',
     '<button onclick="const i=this.previousElementSibling;addComment(\'' + t.id + '\',i.value);i.value=\'\';">💬</button>',
@@ -745,7 +893,7 @@ function renderRow(t){
     '</select>',
     '</td>',
     '<td style="text-align:center;">' + t.time + '</td>',
-    '<td style="text-align:center;"><input type="checkbox" class="task-cb" onchange="saveTasksState();logAudit(this.checked?\'tâche terminée\':\'tâche réouverte\',\'' + t.id + '\',\'\')"></td>',
+    '<td style="text-align:center;"><input type="checkbox" class="task-cb" onchange="saveTasksState(\'' + t.id + '\');logAudit(this.checked?\'tâche terminée\':\'tâche réouverte\',\'' + t.id + '\',\'\')"></td>',
     '</tr>'
   ].join('');
 }
@@ -794,11 +942,20 @@ function handleAuthSubmit(){
 
   if(!systemUsers[user]){
     if(pin!==pinConfirm) return showAuthError("Les deux codes ne correspondent pas.");
-    systemUsers[user] = pin;
-    saveLocalUsers();
-    fetch('/api/auth/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:user,pin:pin})}).catch(function(){});
-    showToast('Profil créé pour ' + user, 'success');
-    loginSuccess(user);
+    fetch('/api/auth/setup',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user:user,pin:pin})
+    }).then(function(response){
+      if(!response.ok) throw new Error('HTTP ' + response.status);
+      systemUsers[user] = pin;
+      saveLocalUsers();
+      showToast('Profil créé pour ' + user, 'success');
+      loginSuccess(user);
+    }).catch(function(error){
+      console.error('Impossible de sauvegarder le profil utilisateur:', error);
+      showAuthError('Le profil n’a pas pu être sauvegardé. Vérifiez la connexion au serveur et réessayez.');
+    });
   }else{
     if(systemUsers[user]===pin){ loginSuccess(user); return; }
     fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:user,pin:pin})})
@@ -870,6 +1027,8 @@ function refreshData(){
   showToast('🔄 Actualisation…', 'success');
   loadMeta();
   renderAllRows();
+  refreshSharedMeta();
+  refreshComments();
   refreshAudit();
   setTimeout(function(){
     loadTasksState();
@@ -899,7 +1058,7 @@ function handleAssigneeChange(select, taskId){
   const previous = select.dataset.previousValue || '';
   const next = select.value;
   select.dataset.previousValue = next;
-  saveTasksState();
+  saveTasksState(taskId);
   updateAssigneeChip(taskId);
   if(previous !== next){
     if(!previous && next) logAudit('tâche ouverte', taskId, 'Prise en charge par ' + next);
@@ -930,27 +1089,88 @@ function loadTasksState(){
   let state = {};
   try{ const s = localStorage.getItem(STORAGE_KEY); if(s) state = JSON.parse(s); }catch(e){}
   applyStateToUI(state);
-  fetch('/api/tasks').then(function(r){ if(!r.ok) throw new Error(); return r.json(); })
-    .then(function(api){
-      if(api && Object.keys(api).length){
-        applyStateToUI(api);
-        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(api)); }catch(e){}
-      }
-    }).catch(function(){});
+  return refreshTasksState();
+}
+
+function getCurrentTasksState(){
+  const state = {};
+  document.querySelectorAll('.task-row').forEach(function(row){
+    const id = row.getAttribute('data-id');
+    const cb = row.querySelector('.task-cb');
+    const sel = row.querySelector('.task-assignee');
+    state[id] = {checked:cb?cb.checked:false, assignee:sel?sel.value:''};
+  });
+  return state;
+}
+
+function refreshTasksState(){
+  if(taskSyncInProgress || taskSavePending) return Promise.resolve();
+  if(taskDirtyIds.size){
+    saveTasksState(Array.from(taskDirtyIds));
+    return Promise.resolve();
+  }
+  taskSyncInProgress = true;
+  return fetch('/api/tasks').then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(remote){
+    if(!remote || typeof remote !== 'object' || Array.isArray(remote)){
+      throw new Error('Format des tâches invalide');
+    }
+    let cached = {};
+    try{
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if(saved) cached = JSON.parse(saved);
+    }catch(error){
+      console.error('Cache local des tâches invalide:', error);
+    }
+    if(!cached || typeof cached !== 'object' || Array.isArray(cached)) cached = {};
+
+    if(Object.keys(remote).length){
+      const missingIds = Object.keys(cached).filter(function(id){
+        return !Object.prototype.hasOwnProperty.call(remote, id);
+      });
+      const merged = Object.assign({}, cached, remote);
+      const current = getCurrentTasksState();
+      const stateChanged = TASKS.some(function(task){
+        const currentTask = current[task.id] || {};
+        const remoteTask = merged[task.id] || {};
+        return currentTask.checked !== Boolean(remoteTask.checked) ||
+          currentTask.assignee !== (remoteTask.assignee || '');
+      });
+      if(stateChanged) applyStateToUI(merged);
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(merged)); }catch(e){}
+      if(missingIds.length) saveTasksState(missingIds);
+      taskSyncWarningShown = false;
+      return;
+    }
+
+    if(Object.keys(cached).length){
+      applyStateToUI(cached);
+      saveTasksState();
+    }
+    taskSyncWarningShown = false;
+  }).catch(function(error){
+    console.error('Impossible de charger les tâches partagées:', error);
+    if(!taskSyncWarningShown){
+      taskSyncWarningShown = true;
+      showToast('Les tâches ne peuvent pas être synchronisées avec le serveur.', 'error');
+    }
+  }).finally(function(){
+    taskSyncInProgress = false;
+  });
 }
 
 function applyStateToUI(state){
   document.querySelectorAll('.task-row').forEach(function(row){
     const id = row.getAttribute('data-id');
     const d = state[id];
-    if(d){
-      const cb = row.querySelector('.task-cb');
-      const sel = row.querySelector('.task-assignee');
-      if(cb) cb.checked = d.checked || false;
-      if(sel){
-        sel.value = d.assignee || '';
-        sel.dataset.previousValue = sel.value;
-      }
+    const cb = row.querySelector('.task-cb');
+    const sel = row.querySelector('.task-assignee');
+    if(cb) cb.checked = Boolean(d && d.checked);
+    if(sel){
+      sel.value = d && d.assignee || '';
+      sel.dataset.previousValue = sel.value;
     }
   });
   updateAllAssigneeChips();
@@ -961,57 +1181,185 @@ function applyStateToUI(state){
   updateAlertBadges();
 }
 
-function saveTasksState(){
-  const state = {};
-  document.querySelectorAll('.task-row').forEach(function(row){
-    const id = row.getAttribute('data-id');
-    const cb = row.querySelector('.task-cb');
-    const sel = row.querySelector('.task-assignee');
-    state[id] = {checked: cb?cb.checked:false, assignee: sel?sel.value:''};
-  });
+function saveTasksState(taskId){
+  const state = getCurrentTasksState();
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
   updateProgressUI();
   updateStatsDashboard();
   renderKanban();
   updateAlertBadges();
-  fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)}).catch(function(){});
+  taskSavePending++;
+  const taskIds = Array.isArray(taskId) ? taskId :
+    (typeof taskId === 'string' ? [taskId] : Object.keys(state));
+  taskIds.forEach(function(id){ taskDirtyIds.add(id); });
+  const payload = JSON.stringify({taskIds:taskIds,tasks:state});
+  taskSaveQueue = taskSaveQueue.catch(function(){})
+    .then(function(){
+      return fetch('/api/tasks', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:payload
+      }).then(function(response){
+        if(!response.ok) throw new Error('HTTP ' + response.status);
+      });
+    }).then(function(){
+      taskSyncWarningShown = false;
+      taskIds.forEach(function(id){ taskDirtyIds.delete(id); });
+    }).catch(function(error){
+      console.error('Impossible de sauvegarder les tâches partagées:', error);
+      if(!taskSyncWarningShown){
+        taskSyncWarningShown = true;
+        showToast('Les modifications des tâches restent locales : sauvegarde serveur indisponible.', 'error');
+      }
+    }).finally(function(){
+      taskSavePending--;
+      if(!taskDirtyIds.size) taskSyncWarningShown = false;
+    });
 }
 
 /* ---------- SOUS-TÂCHES ---------- */
 function addSubtask(id, text){
   if(!text || !text.trim()) return;
+  if(text.trim().length > 5000) return showToast('La sous-tâche dépasse la limite de 5 000 caractères.', 'error');
   if(!tasksMeta.subtasks[id]) tasksMeta.subtasks[id] = [];
-  tasksMeta.subtasks[id].push({text:text.trim(), done:false});
-  saveMeta(); logAudit('ajout sous-tâche', id, text.trim());
+  tasksMeta.subtasks[id].push({id:createCommentId(), text:text.trim(), done:false});
+  saveMeta(); syncSharedMeta(id); logAudit('ajout sous-tâche', id, text.trim());
   rerenderTaskInline(id);
 }
 function toggleSubtask(id, idx){
   const s = tasksMeta.subtasks[id] && tasksMeta.subtasks[id][idx];
   if(!s) return;
   s.done = !s.done;
-  saveMeta(); logAudit(s.done?'coche sous-tâche':'décoche sous-tâche', id, s.text);
+  saveMeta(); syncSharedMeta(id); logAudit(s.done?'coche sous-tâche':'décoche sous-tâche', id, s.text);
   rerenderTaskInline(id);
 }
 function removeSubtask(id, idx){
   if(!tasksMeta.subtasks[id]) return;
   const removed = tasksMeta.subtasks[id].splice(idx,1)[0];
-  saveMeta(); logAudit('supprime sous-tâche', id, removed ? removed.text : '');
+  saveMeta(); syncSharedMeta(id); logAudit('supprime sous-tâche', id, removed ? removed.text : '');
   rerenderTaskInline(id);
 }
 
 /* ---------- COMMENTAIRES ---------- */
 function addComment(id, text){
   if(!text || !text.trim()) return;
+  if(text.trim().length > 5000) return showToast('Le commentaire dépasse la limite de 5 000 caractères.', 'error');
   if(!tasksMeta.comments[id]) tasksMeta.comments[id] = [];
-  tasksMeta.comments[id].push({user:currentUser||'Anonyme', text:text.trim(), date:new Date().toISOString()});
+  tasksMeta.comments[id].push({
+    id:createCommentId(),
+    user:currentUser||'Anonyme',
+    text:text.trim(),
+    date:new Date().toISOString()
+  });
   saveMeta(); logAudit('commentaire', id, text.trim().slice(0,60));
-  rerenderTaskInline(id);
+  renderCommentsAtTask(id);
+  refreshComments();
+}
+
+function renderCommentList(id){
+  const comments = tasksMeta.comments[id] || [];
+  return comments.map(function(comment){
+    return '<div class="comment">' +
+      '<div class="comment-head"><span>💬 ' + escapeHtml(comment.user) + '</span><span>' + fmtDate(comment.date) + '</span></div>' +
+      '<div class="comment-body">' + escapeHtml(comment.text) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function createCommentId(){
+  if(window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(character){
+    const random = Math.random() * 16 | 0;
+    return (character === 'x' ? random : (random & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function renderCommentsAtTask(id){
+  const list = document.getElementById('cmt-list-' + id);
+  if(list) list.innerHTML = renderCommentList(id);
+}
+
+function refreshComments(){
+  if(commentsSyncInProgress) return Promise.resolve();
+  commentsSyncInProgress = true;
+
+  return fetch('/api/comments').then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(data){
+    if(!data || !data.comments || typeof data.comments !== 'object' || Array.isArray(data.comments)){
+      throw new Error('Format de commentaires invalide');
+    }
+
+    const shared = data.comments;
+    const pending = [];
+    Object.keys(tasksMeta.comments).forEach(function(taskId){
+      const localComments = tasksMeta.comments[taskId];
+      if(!Array.isArray(localComments)) return;
+      if(!Array.isArray(shared[taskId])) shared[taskId] = [];
+      const sharedIds = new Set(shared[taskId].map(function(comment){ return comment && comment.id; }));
+      localComments.forEach(function(comment){
+        if(!comment || typeof comment.text !== 'string') return;
+        if(!comment.id) comment.id = createCommentId();
+        if(!sharedIds.has(comment.id)){
+          pending.push(fetch('/api/comments', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+              id:comment.id,
+              taskId:taskId,
+              user:comment.user || 'Anonyme',
+              text:comment.text,
+              date:comment.date || new Date().toISOString()
+            })
+          }).then(function(response){
+            if(!response.ok) throw new Error('HTTP ' + response.status);
+            return response.json();
+          }).then(function(result){
+            if(!result || !result.comment || result.comment.id !== comment.id){
+              throw new Error('Réponse de commentaire invalide');
+            }
+            shared[taskId].push(result.comment);
+          }));
+          sharedIds.add(comment.id);
+        }
+      });
+    });
+
+    saveMeta();
+    return Promise.all(pending).then(function(){
+      const taskIds = new Set(Object.keys(shared).concat(Object.keys(tasksMeta.comments)));
+      taskIds.forEach(function(taskId){
+        const byId = new Map();
+        (shared[taskId] || []).forEach(function(comment){
+          if(comment && typeof comment.id === 'string') byId.set(comment.id, comment);
+        });
+        (tasksMeta.comments[taskId] || []).forEach(function(comment){
+          if(comment && typeof comment.id === 'string' && !byId.has(comment.id)) byId.set(comment.id, comment);
+        });
+        tasksMeta.comments[taskId] = Array.from(byId.values()).sort(function(a, b){
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        });
+        renderCommentsAtTask(taskId);
+      });
+      saveMeta();
+      commentsSyncWarningShown = false;
+    });
+  }).catch(function(error){
+    console.error('Impossible de synchroniser les commentaires partagés:', error);
+    if(!commentsSyncWarningShown){
+      commentsSyncWarningShown = true;
+      showToast('Les commentaires restent sur cet appareil : synchronisation serveur indisponible.', 'error');
+    }
+  }).finally(function(){
+    commentsSyncInProgress = false;
+  });
 }
 
 /* ---------- DEADLINES ---------- */
 function setDeadline(id, date){
   tasksMeta.deadlines[id] = date;
-  saveMeta(); logAudit('deadline', id, date);
+  saveMeta(); syncSharedMeta(id); logAudit('deadline', id, date);
   rerenderTaskInline(id);
 }
 function getDeadlineBadge(dateStr){
@@ -1375,7 +1723,7 @@ function exportJSON(){
     exportedBy: currentUser||'anonyme',
     tasks: state,
     meta: tasksMeta,
-    audit: JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]')
+    audit: auditEntries
   };
   downloadFile(JSON.stringify(data,null,2),
     'kaly-livrer-taches-' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
@@ -1422,10 +1770,13 @@ function importJSON(event){
         localStorage.setItem(COMMENTS_KEY, JSON.stringify(data.meta.comments||{}));
         localStorage.setItem(DEADLINES_KEY, JSON.stringify(data.meta.deadlines||{}));
         loadMeta();
+        syncSharedMeta(TASKS.map(function(task){ return task.id; }));
+        refreshComments();
       }
       if(data.audit) localStorage.setItem(AUDIT_KEY, JSON.stringify(data.audit));
       renderAllRows();
       applyStateToUI(tasks);
+      saveTasksState();
       renderAudit();
       showToast('Import réussi', 'success');
     }catch(err){ showToast('Erreur d\'import : fichier invalide', 'error'); }
@@ -2210,8 +2561,7 @@ function runZipGeneration(state){
   });
   reportsFolder.file('avancement.csv', '\uFEFF' + csvLines.join('\n'));
 
-  const audit = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]');
-  reportsFolder.file('historique.json', JSON.stringify(audit, null, 2));
+  reportsFolder.file('historique.json', JSON.stringify(auditEntries, null, 2));
 
   s3.classList.remove('active'); s3.classList.add('done');
 
