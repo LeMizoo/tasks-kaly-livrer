@@ -348,9 +348,10 @@ tbody tr:last-child td{border-bottom:none;}
           <span style="font-size:.8rem;font-weight:700;color:var(--accent);">🗓️ Publication : 16 octobre 2026</span>
           <span id="publication-deadline" style="font-size:.8rem;font-weight:700;color:var(--danger);background:rgba(220,38,38,.08);padding:.25rem .65rem;border-radius:999px;border:1px solid rgba(220,38,38,.18);">⏳ Deadline : --</span>
         </div>
-        <div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
           <span id="alert-badges"></span>
           <span id="current-session-user" style="font-size:.8rem;font-weight:800;background:var(--primary);color:var(--card-bg);padding:.3rem .8rem;border-radius:20px;">Session active</span>
+          <button onclick="refreshData()" title="Actualiser les données" aria-label="Actualiser les données" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);cursor:pointer;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0;font-size:1rem;box-shadow:var(--shadow-sm);">🔄</button>
         </div>
       </div>
       <h1 style="margin:.4rem 0 0;color:var(--primary);font-size:1.4rem;">Feuille de Route & Dispatching (22 Tâches) — Audit GEO</h1>
@@ -409,7 +410,6 @@ tbody tr:last-child td{border-bottom:none;}
     <button onclick="expandAll()">📖 Tout déplier</button>
     <button onclick="collapseAll()">📕 Tout replier</button>
     <button onclick="toggleAuditPanel()">🕓 Historique</button>
-    <button onclick="refreshData()" title="Actualiser les données">🔄 Actualiser</button>
     <button onclick="exportJSON()">💾 JSON</button>
     <button onclick="exportCSV()">📊 CSV</button>
     <button onclick="document.getElementById('import-file').click()">📥 Import</button>
