@@ -107,6 +107,8 @@ header::before{
 .alert-badge.danger{background:var(--danger-bg);color:var(--danger);animation:pulse 2s ease-in-out infinite;}
 .alert-badge.warning{background:#fef3c7;color:#92400e;}
 .alert-badge.success{background:var(--success-bg);color:var(--success);}
+.visitor-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:700;color:#0f766e;background:linear-gradient(135deg,rgba(16,185,129,.16),rgba(52,211,153,.08));padding:.35rem .8rem;border-radius:999px;border:1px solid rgba(16,185,129,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 6px 18px -10px rgba(16,185,129,.5);letter-spacing:.01em;}
+.visitor-badge::before{content:'👀';font-size:.78rem;filter:drop-shadow(0 2px 8px rgba(16,185,129,.25));}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.7;}}
 
 .toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.25rem 0;align-items:center;}
@@ -343,7 +345,7 @@ tbody tr:last-child td{border-bottom:none;}
     <header>
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
-          <span style="font-size:.8rem;font-weight:700;color:var(--accent);">🗓️ Publication : 7 octobre 2026</span>
+          <span style="font-size:.8rem;font-weight:700;color:var(--accent);">🗓️ Publication : 16 octobre 2026</span>
           <span id="publication-deadline" style="font-size:.8rem;font-weight:700;color:var(--danger);background:rgba(220,38,38,.08);padding:.25rem .65rem;border-radius:999px;border:1px solid rgba(220,38,38,.18);">⏳ Deadline : --</span>
         </div>
         <div>
@@ -354,7 +356,7 @@ tbody tr:last-child td{border-bottom:none;}
       <h1 style="margin:.4rem 0 0;color:var(--primary);font-size:1.4rem;">Feuille de Route & Dispatching (22 Tâches) — Audit GEO</h1>
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.2rem;">
         <span id="page-visit-summary" style="font-size:.85rem;color:var(--muted);">Plan d'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.</span>
-        <span id="visitors-badge" style="display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:700;color:#0f766e;background:rgba(16,185,129,.12);padding:.25rem .6rem;border-radius:999px;border:1px solid rgba(16,185,129,.2);">👀 Suivi par : --</span>
+        <span id="visitors-badge" class="visitor-badge">Suivi par : --</span>
       </div>
       <div style="margin-top:.75rem;">
         <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;">
@@ -1341,10 +1343,10 @@ function updateVisitSummary(userName){
 
   if(badge){
     if(unique.length > 0){
-      badge.textContent = '👀 Suivi par : ' + unique.join(', ');
+      badge.textContent = 'Suivi par : ' + unique.join(', ');
       badge.style.display = 'inline-flex';
     }else{
-      badge.textContent = '👀 Suivi par : --';
+      badge.textContent = 'Suivi par : --';
       badge.style.display = 'inline-flex';
     }
   }
