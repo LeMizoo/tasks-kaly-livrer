@@ -318,7 +318,7 @@ tbody tr:last-child td{border-bottom:none;}
     <select id="auth-user-select" onchange="checkUserAuthStatus()">
       <option value="" disabled selected>-- Choisissez votre prénom --</option>
       <option value="Eric">Eric</option><option value="Miora">Miora</option>
-      <option value="Tovo">Tovo</option><option value="Nanci">Nanci</option>
+      <option value="Tovo">Tovo</option><option value="Nancy">Nancy</option>
       <option value="Safidy">Safidy</option><option value="Lioka">Lioka</option>
     </select>
     <div id="pin-section" class="hidden">
@@ -391,7 +391,7 @@ tbody tr:last-child td{border-bottom:none;}
     <select id="filter-assignee" onchange="applyFilters()">
       <option value="">Tous les assignés</option>
       <option value="Eric">Eric</option><option value="Miora">Miora</option>
-      <option value="Nanci">Nanci</option>
+      <option value="Nancy">Nancy</option>
       <option value="Safidy">Safidy</option><option value="Lioka">Lioka</option>
       <option value="__unassigned__">— Non assignées —</option>
     </select>
@@ -429,7 +429,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="card-header">
       <div><h2 class="card-title">🔴 PO & Commercial <span class="card-count" data-count-for="po">6</span></h2>
       <span style="font-size:.8rem;color:var(--muted);">Validation faits & tarifs, règles de livraison et mesure de visibilité</span></div>
-      <span style="font-size:.8rem;font-weight:700;">Équipe : Nanci</span>
+      <span style="font-size:.8rem;font-weight:700;">Équipe : Nancy</span>
     </div>
     <table>
       <thead><tr>
@@ -446,7 +446,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="card-header">
       <div><h2 class="card-title">⚖️ Juridique & Rédac <span class="card-count" data-count-for="juridique">4</span></h2>
       <span style="font-size:.8rem;color:var(--muted);">Pages légales & FAQ, contenus B2B et landing pages locales</span></div>
-      <span style="font-size:.8rem;font-weight:700;">Équipe : Eric, Miora, Nanci</span>
+      <span style="font-size:.8rem;font-weight:700;">Équipe : Eric, Miora, Nancy</span>
     </div>
     <table>
       <thead><tr>
@@ -531,16 +531,16 @@ let tasksMeta = { subtasks:{}, comments:{}, deadlines:{} };
 
 /* ---------- DONNÉES STATIQUES DES TÂCHES ---------- */
 const TASKS = [
-  {id:'GEO-001',section:'po',priority:'P0',title:'Identité commerciale & Éditeur',scope:'/legal/mentions, /a-propos — Valider raison sociale et RCS.',time:'1-3 j',detail:'Vérifier et inscrire :\n- Nom officiel : RAPEX SARL\n- Enseigne : Kaly Livrer\n- Numéro RCS / NIF / STAT : [À compléter]\n- Adresse siège : Antananarivo, Madagascar',team:'Nanci'},
-  {id:'GEO-002',section:'po',priority:'P0',title:'Téléphones divergents',scope:'/a-propos, /contact — Fixer un numéro unique.',time:'0.5 j',detail:'Format recommandé :\n- Téléphone principal Support Client : [Numéro Unique]\n- Numéro Direction / Partenariats : [Numéro B2B distinct]',team:'Nanci'},
-  {id:'GEO-005',section:'po',priority:'P0',title:'Chiffres et promesses',scope:'Accueil — Justifier "30 min", "+500 plats", "4.8".',time:'1-2 j',detail:'Remplacer les chiffres approximatifs par :\n- "Livraison moyenne en 35-45 minutes selon la zone à Antananarivo"\n- "+X restaurants partenaires enregistrés"\n- "Note basée sur les avis clients vérifiés"',team:'Nanci'},
-  {id:'GEO-007',section:'po',priority:'P1',title:'Informations de livraison',scope:'/livraison-antananarivo — Grille tarifaire par zone.',time:'3-5 j',detail:'Structure de la page :\n- Zone 1 (Centre ville / Analakely) : Frais X Ar\n- Zone 2 (Ivandry, Ankorondrano) : Frais Y Ar\n- Horaires de livraison : 08h00 - 20h00\n- Modes de paiement : Cash / MVola',team:'Nanci'},
-  {id:'GEO-019',section:'po',priority:'P2',title:'Profils et preuves externes',scope:'Réseaux sociaux, App, Partenaires — Liens réciproques.',time:'30-90 j',detail:'Checklist :\n1. Page Facebook : Aligner adresse, logo et téléphone officiel\n2. Profil Instagram : Lien exact vers la page d\'accueil\n3. Google Business Profile : Même raison sociale RAPEX / Kaly Livrer',team:'Nanci'},
-  {id:'GEO-020',section:'po',priority:'P3',title:'Mesure de visibilité IA & Moteurs',scope:'Tableau mensuel — Suivi du panel de 50 prompts.',time:'Récurrent',detail:'Prompt 001: "Quel service permet de commander un repas à Antananarivo ?"\nPrompt 002: "Comment se faire livrer un plat à Ivandry ?"\nMesure: Marque citée (Oui/Non), position et lien source.',team:'Nanci'},
-  {id:'GEO-006',section:'juridique',priority:'P0',title:'Pages légales contextualisées',scope:'/legal/mentions, /cgu, /privacy — Révision juridique locale.',time:'3-7 j',detail:'Société : RAPEX SARL (Marque Kaly Livrer)\nSiège : Antananarivo, Madagascar\nDirecteur de publication : Eric / Miora\nPaiements acceptés : Mobile Money (MVola) et espèces',team:'Eric, Miora, Nanci'},
-  {id:'GEO-011',section:'juridique',priority:'P1',title:'Page partenaire B2B',scope:'/devenir-partenaire — Landing restaurateurs.',time:'3-5 j',detail:'Title: Devenir restaurant partenaire | Kaly Livrer\nH1: Développez vos ventes avec la livraison à Antananarivo\nSections: Avantages, Taux de commission, Inscription rapide.',team:'Eric, Miora, Nanci'},
-  {id:'GEO-012',section:'juridique',priority:'P1',title:'FAQ transactionnelle',scope:'/aide — Réponses aux questions courantes (Mobile Money, etc.).',time:'3 j',detail:'Q: Puis-je payer un repas par Mobile Money à Antananarivo ?\nR: Oui, Kaly Livrer accepte les paiements par MVola.\n\nQ: Quels sont les délais de livraison ?\nR: Nos livreurs interviennent en moyenne en 30 à 45 minutes selon votre zone.',team:'Eric, Miora, Nanci'},
-  {id:'GEO-021',section:'juridique',priority:'P3',title:'Contenu local unique par zone',scope:'/livraison-antananarivo — Landing pages par quartier.',time:'90 j',detail:'Modèle pour /livraison-ivandry :\nTitle: Livraison de repas à Ivandry | Kaly Livrer\nH1: Vos restaurants préférés livrés chez vous à Ivandry',team:'Eric, Miora, Nanci'},
+  {id:'GEO-001',section:'po',priority:'P0',title:'Identité commerciale & Éditeur',scope:'/legal/mentions, /a-propos — Valider raison sociale et RCS.',time:'1-3 j',detail:'Vérifier et inscrire :\n- Nom officiel : RAPEX SARL\n- Enseigne : Kaly Livrer\n- Numéro RCS / NIF / STAT : [À compléter]\n- Adresse siège : Antananarivo, Madagascar',team:'Nancy'},
+  {id:'GEO-002',section:'po',priority:'P0',title:'Téléphones divergents',scope:'/a-propos, /contact — Fixer un numéro unique.',time:'0.5 j',detail:'Format recommandé :\n- Téléphone principal Support Client : [Numéro Unique]\n- Numéro Direction / Partenariats : [Numéro B2B distinct]',team:'Nancy'},
+  {id:'GEO-005',section:'po',priority:'P0',title:'Chiffres et promesses',scope:'Accueil — Justifier "30 min", "+500 plats", "4.8".',time:'1-2 j',detail:'Remplacer les chiffres approximatifs par :\n- "Livraison moyenne en 35-45 minutes selon la zone à Antananarivo"\n- "+X restaurants partenaires enregistrés"\n- "Note basée sur les avis clients vérifiés"',team:'Nancy'},
+  {id:'GEO-007',section:'po',priority:'P1',title:'Informations de livraison',scope:'/livraison-antananarivo — Grille tarifaire par zone.',time:'3-5 j',detail:'Structure de la page :\n- Zone 1 (Centre ville / Analakely) : Frais X Ar\n- Zone 2 (Ivandry, Ankorondrano) : Frais Y Ar\n- Horaires de livraison : 08h00 - 20h00\n- Modes de paiement : Cash / MVola',team:'Nancy'},
+  {id:'GEO-019',section:'po',priority:'P2',title:'Profils et preuves externes',scope:'Réseaux sociaux, App, Partenaires — Liens réciproques.',time:'30-90 j',detail:'Checklist :\n1. Page Facebook : Aligner adresse, logo et téléphone officiel\n2. Profil Instagram : Lien exact vers la page d\'accueil\n3. Google Business Profile : Même raison sociale RAPEX / Kaly Livrer',team:'Nancy'},
+  {id:'GEO-020',section:'po',priority:'P3',title:'Mesure de visibilité IA & Moteurs',scope:'Tableau mensuel — Suivi du panel de 50 prompts.',time:'Récurrent',detail:'Prompt 001: "Quel service permet de commander un repas à Antananarivo ?"\nPrompt 002: "Comment se faire livrer un plat à Ivandry ?"\nMesure: Marque citée (Oui/Non), position et lien source.',team:'Nancy'},
+  {id:'GEO-006',section:'juridique',priority:'P0',title:'Pages légales contextualisées',scope:'/legal/mentions, /cgu, /privacy — Révision juridique locale.',time:'3-7 j',detail:'Société : RAPEX SARL (Marque Kaly Livrer)\nSiège : Antananarivo, Madagascar\nDirecteur de publication : Eric / Miora\nPaiements acceptés : Mobile Money (MVola) et espèces',team:'Eric, Miora, Nancy'},
+  {id:'GEO-011',section:'juridique',priority:'P1',title:'Page partenaire B2B',scope:'/devenir-partenaire — Landing restaurateurs.',time:'3-5 j',detail:'Title: Devenir restaurant partenaire | Kaly Livrer\nH1: Développez vos ventes avec la livraison à Antananarivo\nSections: Avantages, Taux de commission, Inscription rapide.',team:'Eric, Miora, Nancy'},
+  {id:'GEO-012',section:'juridique',priority:'P1',title:'FAQ transactionnelle',scope:'/aide — Réponses aux questions courantes (Mobile Money, etc.).',time:'3 j',detail:'Q: Puis-je payer un repas par Mobile Money à Antananarivo ?\nR: Oui, Kaly Livrer accepte les paiements par MVola.\n\nQ: Quels sont les délais de livraison ?\nR: Nos livreurs interviennent en moyenne en 30 à 45 minutes selon votre zone.',team:'Eric, Miora, Nancy'},
+  {id:'GEO-021',section:'juridique',priority:'P3',title:'Contenu local unique par zone',scope:'/livraison-antananarivo — Landing pages par quartier.',time:'90 j',detail:'Modèle pour /livraison-ivandry :\nTitle: Livraison de repas à Ivandry | Kaly Livrer\nH1: Vos restaurants préférés livrés chez vous à Ivandry',team:'Eric, Miora, Nancy'},
   {id:'GEO-003',section:'dev',priority:'P0',title:'Langue déclarée',scope:'Passer de lang="en" à lang="fr-MG" dans le HTML.',time:'0.5 j',detail:'<!-- Avant --> <html lang="en">\n<!-- Après --> <html lang="fr-MG">',team:'Safidy, Lioka'},
   {id:'GEO-004',section:'dev',priority:'P0',title:'Descriptions en double',scope:'Gabarit global — Supprimer la 2ème meta description.',time:'1 j',detail:'<!-- Conserver uniquement la première balise meta description dynamique -->\n<meta name="description" content="[DESCRIPTION DYNAMIQUE PAR PAGE]">',team:'Safidy, Lioka'},
   {id:'GEO-008',section:'dev',priority:'P1',title:'Rendu du catalogue (SSR)',scope:'/plats&produits — Plats et prix rendus côté serveur.',time:'5-10 j',detail:'// S\'assurer que le HTML brut généré contient directement les titres et prix des plats\n// Sans attendre le chargement de scripts JavaScript clients pour alimenter le DOM.',team:'Safidy, Lioka'},
@@ -692,7 +692,7 @@ function renderRow(t){
     '<span class="assignee-chip empty" id="chip-' + t.id + '">👤 —</span>',
     '<select class="task-assignee" onchange="saveTasksState();updateAssigneeChip(\'' + t.id + '\')">',
     '<option value="">-- Choisir --</option>',
-    ['Eric','Miora','Nanci','Safidy','Lioka'].map(u=>'<option value="'+u+'">'+u+'</option>').join(''),
+    ['Eric','Miora','Nancy','Safidy','Lioka'].map(u=>'<option value="'+u+'">'+u+'</option>').join(''),
     '</select>',
     '</td>',
     '<td style="text-align:center;">' + t.time + '</td>',
@@ -1035,7 +1035,7 @@ function updateStatsDashboard(){
   document.getElementById('stat-p0').textContent = p0Remaining;
 
   const tbody = document.getElementById('workload-tbody');
-  const members = ['Eric','Miora','Nanci','Safidy','Lioka'];
+  const members = ['Eric','Miora','Nancy','Safidy','Lioka'];
   tbody.innerHTML = members.map(function(m){
     const d = byMember[m] || {assigned:0,done:0};
     const rem = d.assigned - d.done;
