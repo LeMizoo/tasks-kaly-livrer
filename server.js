@@ -8,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const CONFIG_FILE = path.resolve(process.env.APP_CONFIG_FILE || path.join(__dirname, 'config', 'app.json'));
 const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.json');
@@ -15,7 +16,99 @@ const COMMENTS_FILE = path.join(DATA_DIR, 'comments.json');
 const META_FILE = path.join(DATA_DIR, 'meta.json');
 const TEMPLATES_FILE = path.join(DATA_DIR, 'templates.json');
 
-const ALLOWED_USERS = ["Eric", "Miora", "Tovo", "Nancy", "Safidy", "Lioka"];
+function loadProjectConfig(filePath) {
+    let config;
+    try {
+        config = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (err) {
+        throw new Error(`Impossible de charger la configuration ${filePath}: ${err.message}`);
+    }
+
+    const fail = message => { throw new Error(`Configuration de projet invalide: ${message}`); };
+    const isText = value => typeof value === 'string' && value.trim().length > 0;
+    const isKey = value => typeof value === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,49}$/.test(value);
+    if (!config || typeof config !== 'object' || Array.isArray(config)) fail('un objet JSON est requis.');
+    if (!config.app || !isText(config.app.name) || !isText(config.app.title) ||
+        !isText(config.app.description) || !/^[a-z0-9][a-z0-9-]{1,49}$/.test(config.app.storageNamespace || '')) {
+        fail('app doit fournir name, title, description et storageNamespace (minuscules, chiffres et tirets).');
+    }
+    if (config.app.locale !== undefined) {
+        try {
+            if (!isText(config.app.locale)) fail('app.locale doit être une locale prise en charge.');
+            new Intl.DateTimeFormat(config.app.locale);
+        } catch {
+            fail('app.locale doit être une locale prise en charge.');
+        }
+    }
+    if (config.app.publicationDate !== undefined &&
+        (typeof config.app.publicationDate !== 'string' ||
+            !/^\d{4}-\d{2}-\d{2}$/.test(config.app.publicationDate) ||
+            Number.isNaN(Date.parse(config.app.publicationDate)))) {
+        fail('app.publicationDate doit respecter le format AAAA-MM-JJ.');
+    }
+    if (config.app.theme && (
+        typeof config.app.theme !== 'object' || Array.isArray(config.app.theme) ||
+        ['accent', 'accentSecondary'].some(key =>
+            config.app.theme[key] !== undefined && !/^#[0-9a-f]{6}$/i.test(config.app.theme[key]))
+    )) {
+        fail('app.theme accepte uniquement des couleurs hexadécimales #RRGGBB.');
+    }
+    if (!config.team || !isText(config.team.label) || !Array.isArray(config.team.members) ||
+        !config.team.members.length || config.team.members.some(member => !isText(member)) ||
+        new Set(config.team.members).size !== config.team.members.length) {
+        fail('team doit fournir un libellé et des membres uniques.');
+    }
+    if (!Array.isArray(config.sections) || !config.sections.length) fail('au moins une section est requise.');
+    const sectionIds = new Set();
+    for (const section of config.sections) {
+        if (!section || !isKey(section.id) || !isText(section.title) || !isText(section.description) ||
+            typeof section.team !== 'string' || sectionIds.has(section.id)) {
+            fail('chaque section doit avoir un id unique, un titre, une description et une équipe.');
+        }
+        sectionIds.add(section.id);
+    }
+    if (!Array.isArray(config.priorities) || !config.priorities.length) fail('au moins une priorité est requise.');
+    const priorityIds = new Set();
+    for (const priority of config.priorities) {
+        if (!priority || !isKey(priority.id) || !isText(priority.label) || priorityIds.has(priority.id)) {
+            fail('chaque priorité doit avoir un id et un libellé uniques.');
+        }
+        priorityIds.add(priority.id);
+    }
+    if (!Array.isArray(config.tasks) || !config.tasks.length || config.tasks.length > 1000) {
+        fail('tasks doit contenir entre 1 et 1000 tâches.');
+    }
+    const taskIds = new Set();
+    for (const task of config.tasks) {
+        if (!task || !isKey(task.id) || taskIds.has(task.id) || !sectionIds.has(task.section) ||
+            !priorityIds.has(task.priority) || !isText(task.title) || !isText(task.scope) ||
+            !isText(task.time) || typeof task.detail !== 'string' ||
+            (task.team !== undefined && typeof task.team !== 'string')) {
+            fail('chaque tâche doit avoir un id unique, une section et priorité existantes, un titre, un périmètre, un temps et un détail.');
+        }
+        taskIds.add(task.id);
+    }
+    if ((config.criticalPriority !== undefined && !priorityIds.has(config.criticalPriority)) ||
+        (config.criticalPriorityLabel !== undefined && !isText(config.criticalPriorityLabel))) {
+        fail('criticalPriority doit référencer une priorité existante et criticalPriorityLabel doit être un libellé non vide.');
+    }
+    if (!config.templates || typeof config.templates !== 'object' || Array.isArray(config.templates) ||
+        Object.entries(config.templates).some(([id, content]) => !taskIds.has(id) || typeof content !== 'string')) {
+        fail('templates doit associer un modèle texte à une tâche existante.');
+    }
+    if (!config.templateExtensions || typeof config.templateExtensions !== 'object' ||
+        Array.isArray(config.templateExtensions) ||
+        Object.entries(config.templateExtensions).some(([id, ext]) =>
+            !taskIds.has(id) || typeof ext !== 'string' || !/^[a-z0-9]{1,10}$/i.test(ext))) {
+        fail('templateExtensions doit associer une extension valide à une tâche existante.');
+    }
+    return config;
+}
+
+const PROJECT_CONFIG = loadProjectConfig(CONFIG_FILE);
+const ALLOWED_USERS = PROJECT_CONFIG.team.members;
+const ALLOWED_TASK_IDS = new Set(PROJECT_CONFIG.tasks.map(task => task.id));
+const isValidTaskId = taskId => typeof taskId === 'string' && ALLOWED_TASK_IDS.has(taskId);
 const PRESENCE_TIMEOUT_MS = 90 * 1000;
 const BROADCAST_MESSAGE_TTL_MS = 10 * 60 * 1000;
 const activeSessions = new Map();
@@ -32,6 +125,14 @@ if (!fs.existsSync(TEMPLATES_FILE)) fs.writeFileSync(TEMPLATES_FILE, JSON.string
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
+app.get('/api/config', (req, res) => {
+    res.json(PROJECT_CONFIG);
+});
 
 function getActiveUsers() {
     const cutoff = Date.now() - PRESENCE_TIMEOUT_MS;
@@ -168,7 +269,7 @@ app.post('/api/tasks', (req, res) => {
     try {
         let tasks = body;
         if (Array.isArray(body.taskIds) && body.tasks && typeof body.tasks === 'object' && !Array.isArray(body.tasks)) {
-            if (body.taskIds.length > 100 || body.taskIds.some(taskId => typeof taskId !== 'string' || !/^GEO-\d{3}$/.test(taskId))) {
+            if (body.taskIds.length > 1000 || body.taskIds.some(taskId => !isValidTaskId(taskId))) {
                 return res.status(400).json({ error: "Identifiants de tâches invalides" });
             }
             tasks = JSON.parse(fs.readFileSync(TASKS_FILE, 'utf8') || '{}');
@@ -218,8 +319,7 @@ app.post('/api/meta', (req, res) => {
         return res.status(400).json({ error: "Métadonnées des tâches invalides" });
     }
 
-    const validTaskId = taskId => typeof taskId === 'string' && /^GEO-\d{3}$/.test(taskId);
-    if (taskIds.some(taskId => !validTaskId(taskId))) {
+    if (taskIds.length > 1000 || taskIds.some(taskId => !isValidTaskId(taskId))) {
         return res.status(400).json({ error: "Identifiants de tâches invalides" });
     }
     for (const taskId of taskIds) {
@@ -268,7 +368,7 @@ app.post('/api/comments', (req, res) => {
     const { id, taskId, user, text, date } = req.body || {};
     if (
         typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) ||
-        typeof taskId !== 'string' || !/^GEO-\d{3}$/.test(taskId) ||
+        !isValidTaskId(taskId) ||
         typeof user !== 'string' || (!ALLOWED_USERS.includes(user) && user !== 'Anonyme') ||
         typeof text !== 'string' || !text.trim() || text.trim().length > 5000 ||
         typeof date !== 'string' || !Number.isFinite(Date.parse(date))
@@ -312,7 +412,7 @@ app.get('/api/templates', (req, res) => {
 app.post('/api/templates', (req, res) => {
     const { taskId, content } = req.body || {};
     if (
-        typeof taskId !== 'string' || !/^GEO-\d{3}$/.test(taskId) ||
+        !isValidTaskId(taskId) ||
         typeof content !== 'string' || !content.trim() || content.length > 50000
     ) {
         return res.status(400).json({ error: "Données du modèle invalides" });
@@ -417,6 +517,10 @@ app.post('/api/auth/verify', (req, res) => {
     res.status(400).json({ error: "Code PIN incorrect" });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Serveur Intranet démarré sur le port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Serveur Intranet démarré sur le port ${PORT}`);
+    });
+}
+
+module.exports = app;

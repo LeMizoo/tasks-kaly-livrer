@@ -1,10 +1,11 @@
 {
   "name": "tasks-kaly-livrer",
   "version": "1.0.0",
-  "description": "Tableau de bord des taches GEO Kaly Livrer",
+  "description": "Tableau de bord partagé de suivi de tâches, configurable par projet",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "cors": "^2.8.5",

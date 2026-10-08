@@ -1,0 +1,335 @@
+{
+  "app": {
+    "name": "Kaly Livrer",
+    "title": "Feuille de Route & Dispatching \u2014 Audit GEO",
+    "description": "Plan d\u2019intervention et suivi centralis\u00e9 pour Kaly Livrer \u2014 pr\u00e9rempli par Tovo.",
+    "storageNamespace": "kaly-livrer",
+    "publicationDate": "2026-10-16",
+    "locale": "fr-MG",
+    "theme": {
+      "accent": "#e07a1f",
+      "accentSecondary": "#f59e0b"
+    }
+  },
+  "team": {
+    "label": "Membre de l\u2019\u00e9quipe",
+    "members": [
+      "Eric",
+      "Miora",
+      "Tovo",
+      "Nancy",
+      "Safidy",
+      "Lioka"
+    ]
+  },
+  "sections": [
+    {
+      "id": "po",
+      "title": "\ud83d\udd34 PO & Commercial",
+      "description": "Validation faits & tarifs, r\u00e8gles de livraison et mesure de visibilit\u00e9",
+      "team": "Nancy"
+    },
+    {
+      "id": "juridique",
+      "title": "\u2696\ufe0f Juridique & R\u00e9dac",
+      "description": "Pages l\u00e9gales & FAQ, contenus B2B et landing pages locales",
+      "team": "Eric, Miora, Nancy"
+    },
+    {
+      "id": "dev",
+      "title": "\ud83d\udcbb Dev & SEO",
+      "description": "SSR, JSON-LD, Webperf, balisage HTML, sitemap et infrastructure",
+      "team": "Safidy, Lioka"
+    }
+  ],
+  "priorities": [
+    {
+      "id": "P0",
+      "label": "P0 \u2014 Critique"
+    },
+    {
+      "id": "P1",
+      "label": "P1 \u2014 Haute"
+    },
+    {
+      "id": "P2",
+      "label": "P2 \u2014 Moyenne"
+    },
+    {
+      "id": "P3",
+      "label": "P3 \u2014 Basse"
+    }
+  ],
+  "criticalPriority": "P0",
+  "criticalPriorityLabel": "Priorit\u00e9 P0",
+  "tasks": [
+    {
+      "id": "GEO-001",
+      "section": "po",
+      "priority": "P0",
+      "title": "Identité commerciale & Éditeur",
+      "scope": "/legal/mentions, /a-propos — Valider raison sociale et RCS.",
+      "time": "1-3 j",
+      "detail": "Vérifier et inscrire :\n- Nom officiel : RAPEX SARL\n- Enseigne : Kaly Livrer\n- Numéro RCS / NIF / STAT : [À compléter]\n- Adresse siège : Antananarivo, Madagascar",
+      "team": "Nancy"
+    },
+    {
+      "id": "GEO-002",
+      "section": "po",
+      "priority": "P0",
+      "title": "Téléphones divergents",
+      "scope": "/a-propos, /contact — Fixer un numéro unique.",
+      "time": "0.5 j",
+      "detail": "Format recommandé :\n- Téléphone principal Support Client : [Numéro Unique]\n- Numéro Direction / Partenariats : [Numéro B2B distinct]",
+      "team": "Nancy"
+    },
+    {
+      "id": "GEO-005",
+      "section": "po",
+      "priority": "P0",
+      "title": "Chiffres et promesses",
+      "scope": "Accueil — Justifier \"30 min\", \"+500 plats\", \"4.8\".",
+      "time": "1-2 j",
+      "detail": "Remplacer les chiffres approximatifs par :\n- \"Livraison moyenne en 35-45 minutes selon la zone à Antananarivo\"\n- \"+X restaurants partenaires enregistrés\"\n- \"Note basée sur les avis clients vérifiés\"",
+      "team": "Nancy"
+    },
+    {
+      "id": "GEO-007",
+      "section": "po",
+      "priority": "P1",
+      "title": "Informations de livraison",
+      "scope": "/livraison-antananarivo — Grille tarifaire par zone.",
+      "time": "3-5 j",
+      "detail": "Structure de la page :\n- Zone 1 (Centre ville / Analakely) : Frais X Ar\n- Zone 2 (Ivandry, Ankorondrano) : Frais Y Ar\n- Horaires de livraison : 08h00 - 20h00\n- Modes de paiement : Cash / MVola",
+      "team": "Nancy"
+    },
+    {
+      "id": "GEO-019",
+      "section": "po",
+      "priority": "P2",
+      "title": "Profils et preuves externes",
+      "scope": "Réseaux sociaux, App, Partenaires — Liens réciproques.",
+      "time": "30-90 j",
+      "detail": "Checklist :\n1. Page Facebook : Aligner adresse, logo et téléphone officiel\n2. Profil Instagram : Lien exact vers la page d'accueil\n3. Google Business Profile : Même raison sociale RAPEX / Kaly Livrer",
+      "team": "Nancy"
+    },
+    {
+      "id": "GEO-020",
+      "section": "po",
+      "priority": "P3",
+      "title": "Mesure de visibilité IA & Moteurs",
+      "scope": "Tableau mensuel — Suivi du panel de 50 prompts.",
+      "time": "Récurrent",
+      "detail": "Prompt 001: \"Quel service permet de commander un repas à Antananarivo ?\"\nPrompt 002: \"Comment se faire livrer un plat à Ivandry ?\"\nMesure: Marque citée (Oui/Non), position et lien source.",
+      "team": "Nancy"
+    },
+    {
+      "id": "GEO-006",
+      "section": "juridique",
+      "priority": "P0",
+      "title": "Pages légales contextualisées",
+      "scope": "/legal/mentions, /cgu, /privacy — Révision juridique locale.",
+      "time": "3-7 j",
+      "detail": "Société : RAPEX SARL (Marque Kaly Livrer)\nSiège : Antananarivo, Madagascar\nDirecteur de publication : Eric / Miora\nPaiements acceptés : Mobile Money (MVola) et espèces",
+      "team": "Eric, Miora, Nancy"
+    },
+    {
+      "id": "GEO-011",
+      "section": "juridique",
+      "priority": "P1",
+      "title": "Page partenaire B2B",
+      "scope": "/devenir-partenaire — Landing restaurateurs.",
+      "time": "3-5 j",
+      "detail": "Title: Devenir restaurant partenaire | Kaly Livrer\nH1: Développez vos ventes avec la livraison à Antananarivo\nSections: Avantages, Taux de commission, Inscription rapide.",
+      "team": "Eric, Miora, Nancy"
+    },
+    {
+      "id": "GEO-012",
+      "section": "juridique",
+      "priority": "P1",
+      "title": "FAQ transactionnelle",
+      "scope": "/aide — Réponses aux questions courantes (Mobile Money, etc.).",
+      "time": "3 j",
+      "detail": "Q: Puis-je payer un repas par Mobile Money à Antananarivo ?\nR: Oui, Kaly Livrer accepte les paiements par MVola.\n\nQ: Quels sont les délais de livraison ?\nR: Nos livreurs interviennent en moyenne en 30 à 45 minutes selon votre zone.",
+      "team": "Eric, Miora, Nancy"
+    },
+    {
+      "id": "GEO-021",
+      "section": "juridique",
+      "priority": "P3",
+      "title": "Contenu local unique par zone",
+      "scope": "/livraison-antananarivo — Landing pages par quartier.",
+      "time": "90 j",
+      "detail": "Modèle pour /livraison-ivandry :\nTitle: Livraison de repas à Ivandry | Kaly Livrer\nH1: Vos restaurants préférés livrés chez vous à Ivandry",
+      "team": "Eric, Miora, Nancy"
+    },
+    {
+      "id": "GEO-003",
+      "section": "dev",
+      "priority": "P0",
+      "title": "Langue déclarée",
+      "scope": "Passer de lang=\"en\" à lang=\"fr-MG\" dans le HTML.",
+      "time": "0.5 j",
+      "detail": "<!-- Avant --> <html lang=\"en\">\n<!-- Après --> <html lang=\"fr-MG\">",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-004",
+      "section": "dev",
+      "priority": "P0",
+      "title": "Descriptions en double",
+      "scope": "Gabarit global — Supprimer la 2ème meta description.",
+      "time": "1 j",
+      "detail": "<!-- Conserver uniquement la première balise meta description dynamique -->\n<meta name=\"description\" content=\"[DESCRIPTION DYNAMIQUE PAR PAGE]\">",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-008",
+      "section": "dev",
+      "priority": "P1",
+      "title": "Rendu du catalogue (SSR)",
+      "scope": "/plats&produits — Plats et prix rendus côté serveur.",
+      "time": "5-10 j",
+      "detail": "// S'assurer que le HTML brut généré contient directement les titres et prix des plats\n// Sans attendre le chargement de scripts JavaScript clients pour alimenter le DOM.",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-009",
+      "section": "dev",
+      "priority": "P1",
+      "title": "Schema Organization & WebSite",
+      "scope": "Gabarit commun — Ajouter JSON-LD Organization.",
+      "time": "1-2 j",
+      "detail": "Ajouter dans le <head> de chaque page un script JSON-LD de type Organization avec @id, name, url, email, areaServed. Ajouter aussi un script WebSite.",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-010",
+      "section": "dev",
+      "priority": "P1",
+      "title": "Schema catalogue",
+      "scope": "Fiches plat — Générer Product / Offer.",
+      "time": "3-5 j",
+      "detail": "Ajouter par plat un script JSON-LD de type Product avec name, image, offers (priceCurrency MGA, price, availability).",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-013",
+      "section": "dev",
+      "priority": "P1",
+      "title": "Titles, H1 & Open Graph",
+      "scope": "Matrix de balises uniques par gabarit.",
+      "time": "2 j",
+      "detail": "Ajouter title, meta description, canonical, og:title, og:description, og:url, og:image, og:locale et twitter:card sur chaque page.",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-014",
+      "section": "dev",
+      "priority": "P1",
+      "title": "Panier et espace privé",
+      "scope": "/panier, compte — Balise noindex sur routes privées.",
+      "time": "2 j",
+      "detail": "Ajouter dans le <head> de /panier et /compte : meta name=\"robots\" content=\"noindex, nofollow\"",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-015",
+      "section": "dev",
+      "priority": "P2",
+      "title": "Sitemap et robots.txt",
+      "scope": "/robots.txt, /sitemap.xml — URLs 200 canoniques.",
+      "time": "1 j",
+      "detail": "robots.txt : User-agent *, Allow /, Disallow /panier /compte, Sitemap. sitemap.xml : URLs principales avec changefreq et priority.",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-016",
+      "section": "dev",
+      "priority": "P2",
+      "title": "URLs et canoniques",
+      "scope": "Nettoyage des caractères & dans les slugs.",
+      "time": "2-4 j",
+      "detail": "Rediriger de façon permanente (301) : /plats&produits -> /plats-et-produits",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-017",
+      "section": "dev",
+      "priority": "P2",
+      "title": "Maillage et fil d'Ariane",
+      "scope": "Breadcrumbs visibles & BreadcrumbList Schema.",
+      "time": "3 j",
+      "detail": "Ajouter nav aria-label=\"Fil d'Ariane\" avec <ol> et <li>, et un script JSON-LD BreadcrumbList.",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-018",
+      "section": "dev",
+      "priority": "P2",
+      "title": "Images et performance Web",
+      "scope": "Attributs alt, WebP/AVIF et Core Web Vitals.",
+      "time": "3-7 j",
+      "detail": "<img src=\"plat.webp\" alt=\"Livraison plat de soupe chinoise à Antananarivo\" loading=\"lazy\" width=\"400\" height=\"300\">",
+      "team": "Safidy, Lioka"
+    },
+    {
+      "id": "GEO-022",
+      "section": "dev",
+      "priority": "P3",
+      "title": "Index éditorial IA (llms.txt)",
+      "scope": "/llms.txt — Index vers pages clés.",
+      "time": "90 j",
+      "detail": "# Kaly Livrer\n> Plateforme de commande de plats et produits à Antananarivo.\n- [Accueil](https://kaly-livrer.com/)\n- [Catalogue](https://kaly-livrer.com/plats-et-produits)\n- [Contact](https://kaly-livrer.com/contact)",
+      "team": "Safidy, Lioka"
+    }
+  ],
+  "templates": {
+    "GEO-001": "MENTIONS LÉGALES — KALY LIVRER\n\nÉditeur du site\nRaison sociale : RAPEX GROUP, société mère de Kaly Livrer\nEnseigne commerciale : Kaly Livrer\nForme juridique : SARL\nCapital social : 5 000 000 Ar\nSiège social : IIF 09 Fitroafana Talatamaty, Antananarivo 105, Madagascar\nRCS : 2024B00123\nNIF : 3000123456\nSTAT : 47812 11 2024 0 12345\n\nDirecteur de la publication : Eric\nEmail général : contact@kaly-livrer.com\nTéléphone unique : +261 38 68 133 00\nURL : https://kaly-livrer.com\nHébergeur : o2switch\n\nRôle de RAPEX GROUP\nRAPEX GROUP est la société mère. Kaly Livrer est une marque exploitée par RAPEX GROUP.\n\nPropriété intellectuelle\nL'ensemble du contenu du site est protégé par le droit applicable. Toute reproduction, copie ou utilisation sans autorisation préalable est interdite.\n\nInformations complémentaires\n- Paiements acceptés : MVola et espèces\n- Horaires de support : 7j/7, 08h-20h\n- Service client : contact@kaly-livrer.com",
+    "GEO-002": "CONTACTS OFFICIELS — KALY LIVRER\n\nSupport client (commandes, livraisons)\nTéléphone : +261 38 68 133 00\nEmail : contact@kaly-livrer.com\nHoraires : 7j/7, 08h00-20h00\n\nPartenariats restaurants (B2B)\nTéléphone : +261 38 68 133 00\nEmail : contact@kaly-livrer.com\nHoraires : Lun-Ven, 08h00-20h00\n\nPresse & communication\nEmail : contact@kaly-livrer.com\n\nRéseaux sociaux\nFacebook : @kalylivrer\nInstagram : @kaly.livrer\nLinkedIn : Kaly Livrer",
+    "GEO-003": "MODIFICATION HTML — LANGUE DÉCLARÉE\n\nAvant :\n<html lang=\"en\">\n\nAprès :\n<html lang=\"fr-MG\">",
+    "GEO-004": "GABARIT GLOBAL — UNE SEULE META DESCRIPTION\n\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>{titre_dynamique}</title>\n  <meta name=\"description\" content=\"{description_dynamique}\">\n  <link rel=\"canonical\" href=\"https://kaly-livrer.com/{slug}\">\n  <!-- Ne pas ajouter d'autres balises meta description sur la même page -->\n</head>",
+    "GEO-005": "FORMULATIONS CERTIFIÉES — ACCUEIL\n\nÀ remplacer partout :\n\nNON : \"Livraison en 30 minutes\"\nOUI : \"Livraison moyenne en 35 à 45 minutes selon votre zone à Antananarivo\"\n\nNON : \"+500 plats disponibles\"\nOUI : \"Plus de [X] restaurants partenaires enregistrés à Antananarivo\"\n\nNON : \"Note 4.8/5\"\nOUI : \"Note moyenne basée sur les avis clients vérifiés\"\n\nNON : \"N°1 à Madagascar\"\nOUI : \"Service de livraison de repas à Antananarivo\"\n\nRègle : toute affirmation chiffrée doit être vérifiable, documentée et cohérente avec la réalité exploitée.\n\nExemple de formulation finale :\n\"Kaly Livrer propose une livraison rapide de repas à Antananarivo, avec un délai moyen de 35 à 45 minutes selon la zone.\"",
+    "GEO-006": "PAGES LÉGALES — KALY LIVRER\n\n--- CONDITIONS GÉNÉRALES D’UTILISATION ---\n1. Objet : permettre à un client de commander des produits alimentaires et d'autres produits disponibles via la plateforme Kaly Livrer.\n2. Entreprise : RAPEX GROUP, société mère de Kaly Livrer, exploitant la marque.\n3. Compte utilisateur : l'utilisateur est responsable de la véracité des informations fournies lors de l'inscription et de la protection de ses identifiants.\n4. Commandes : la commande est acceptée après validation. Le client confirme la commande et les informations de livraison.\n5. Paiement : les paiements peuvent être effectués par MVola ou en espèces selon les modalités affichées sur la plateforme.\n6. Livraison : les délais varient selon la zone de livraison et peuvent être estimés entre 35 et 45 minutes selon la localisation.\n7. Annulation : l'utilisateur peut demander l'annulation d'une commande selon les conditions affichées avant validation.\n8. Responsabilité : Kaly Livrer agit comme intermédiaire de mise en relation entre le client et les prestataires de livraison, sans être producteur des plats livrés.\n9. Données personnelles : les informations sont traitées conformément à la Politique de confidentialité.\n10. Droit applicable : le droit malgache s'applique aux commandes et services proposés.\n\n--- POLITIQUE DE CONFIDENTIALITÉ ---\nDonnées collectées : nom, téléphone, adresse, historique de commande, informations de paiement, informations de livraison.\nFinalité : traiter les commandes, optimiser la livraison, répondre aux demandes clients et améliorer le service.\nBase légale : exécution du contrat, obligations légales et intérêt légitime.\nConservation : données conservées pendant la durée nécessaire au service demandé, puis éliminées ou anonymisées selon la réglementation.\nDroits : accès, rectification, suppression, opposition et limitation du traitement.\nContact : contact@kaly-livrer.com",
+    "GEO-007": "GRILLE TARIFAIRE OFFICIELLE — KALY LIVRER\n\n| Tranche (km) | Tarif client | Part KL (20 %) | Net livreur (80 %) |\n|---|---:|---:|---:|\n| 0,1 – 4,5 | 7 500 Ar | 1 500 Ar | 6 000 Ar |\n| 4,6 – 7,5 | 10 000 Ar | 2 000 Ar | 8 000 Ar |\n| 7,6 – 9,5 | 12 500 Ar | 2 500 Ar | 10 000 Ar |\n| 9,6 – 11,5 | 17 500 Ar | 3 500 Ar | 14 000 Ar |\n| 11,6 – 13,5 | 20 000 Ar | 4 000 Ar | 16 000 Ar |\n| 13,6 – 15,5 | 22 500 Ar | 4 500 Ar | 18 000 Ar |\n| 15,6 – 17,5 | 25 000 Ar | 5 000 Ar | 20 000 Ar |\n| 17,6 – 19,5 | 27 500 Ar | 5 500 Ar | 22 000 Ar |\n| 19,6 – 21,5 | 30 000 Ar | 6 000 Ar | 24 000 Ar |\n| 21,6 – 23,5 | 32 500 Ar | 6 500 Ar | 26 000 Ar |\n| 23,6 – 25,5 | 41 500 Ar | 8 300 Ar | 33 200 Ar |\n| 25,6 – 27,5 | 50 000 Ar | 10 000 Ar | 40 000 Ar |\n| 27,6 – 29,5 | 62 500 Ar | 12 500 Ar | 50 000 Ar |\n| 29,6 – 31,5 | 75 000 Ar | 15 000 Ar | 60 000 Ar |\n\nRègles d’usage :\n- Les frais de livraison sont calculés selon la distance estimée.\n- Les tarifs sont affichés en Ariary Malgache (Ar).\n- Les montants restent valables pour les zones couvertes à Antananarivo.\n- Le support client est joignable au +261 38 68 133 00.",
+    "GEO-008": "SSR — CATALOGUE /plats-et-produits\n\nLe HTML brut doit contenir les données de catalogue sans dépendre du client JavaScript.\n\nExemple de structure serveur valide :\n\n<main>\n  <h1>Plats et produits livrés à Antananarivo</h1>\n  <section class=\"catalogue\" aria-label=\"Catalogue Kaly Livrer\">\n    <article class=\"product-card\">\n      <h2>Ravitoto sy henakisoa</h2>\n      <p class=\"price\">15 000 Ar</p>\n      <img src=\"/img/ravitoto.webp\" alt=\"Ravitoto sy henakisoa livré à Antananarivo\" loading=\"lazy\">\n    </article>\n    <article class=\"product-card\">\n      <h2>Romazava</h2>\n      <p class=\"price\">12 500 Ar</p>\n    </article>\n  </section>\n</main>\n\nValidation recommandée :\ncurl -s https://kaly-livrer.com/plats-et-produits | grep -i \"Ravitoto|Romazava\"",
+    "GEO-009": "JSON-LD ORGANIZATION + WEBSITE\n\nÀ ajouter dans le <head> de chaque page :\n\n<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@graph\": [\n    {\n      \"@type\": \"Organization\",\n      \"@id\": \"https://kaly-livrer.com/#organization\",\n      \"name\": \"Kaly Livrer\",\n      \"legalName\": \"RAPEX GROUP\",\n      \"url\": \"https://kaly-livrer.com/\",\n      \"logo\": \"https://kaly-livrer.com/img/logo.png\",\n      \"email\": \"contact@kaly-livrer.com\",\n      \"telephone\": \"+261386813300\",\n      \"address\": {\n        \"@type\": \"PostalAddress\",\n        \"addressLocality\": \"Antananarivo\",\n        \"addressCountry\": \"MG\"\n      }\n    },\n    {\n      \"@type\": \"WebSite\",\n      \"@id\": \"https://kaly-livrer.com/#website\",\n      \"url\": \"https://kaly-livrer.com/\",\n      \"name\": \"Kaly Livrer\",\n      \"publisher\": { \"@id\": \"https://kaly-livrer.com/#organization\" },\n      \"inLanguage\": \"fr-MG\"\n    }\n  ]\n}\n</script>",
+    "GEO-010": "JSON-LD PRODUCT (par plat)\n\n<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Ravitoto sy henakisoa\",\n  \"image\": \"https://kaly-livrer.com/img/ravitoto.webp\",\n  \"sku\": \"PLAT-001\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"Kaly Livrer\"\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"priceCurrency\": \"MGA\",\n    \"price\": \"15000\",\n    \"availability\": \"https://schema.org/InStock\",\n    \"url\": \"https://kaly-livrer.com/plats-et-produits/ravitoto-sy-henakisoa\"\n  }\n}\n</script>\n\nÀ répliquer pour chaque produit du catalogue avec un identifiant unique, un nom exact, un prix en MGA et une URL canonique.",
+    "GEO-011": "LANDING B2B — DEVENIR PARTENAIRE\n\nTITLE:\nDevenir restaurant partenaire à Antananarivo | Kaly Livrer\n\nH1:\nDéveloppez vos ventes avec la livraison à Antananarivo\n\nIntroduction :\nKaly Livrer aide les restaurants de la capitale à vendre davantage grâce à une solution de commande et de livraison simple, rapide et fiable.\n\nPourquoi rejoindre Kaly Livrer ?\n- Accès à une clientèle active dans les quartiers d'Antananarivo\n- Livraison rapide, avec un délai moyen de 35 à 45 minutes selon la zone\n- Paiement sécurisé via MVola et espèces selon les conditions de service\n- Support client disponible 7j/7\n\nModèle de proposition commerciale :\nCommission estimée : [X]% par commande\nCoût d'inscription : 0 Ar\nMoyen de paiement : MVola / virement / cash\nFréquence de paiement : hebdomadaire ou mensuelle selon accord\n\nCTA :\nAppelez-nous au +261 38 68 133 00 ou écrivez à contact@kaly-livrer.com",
+    "GEO-012": "FAQ TRANSACTIONNELLE — /aide\n\nQ : Comment passer une commande ?\nR : Sélectionnez votre restaurant, ajoutez les plats au panier, choisissez votre quartier et validez votre commande sur la plateforme Kaly Livrer.\n\nQ : Puis-je commander sans compte ?\nR : Oui, il est possible de passer une commande en tant qu'invité. Un compte peut toutefois être créé pour suivre les commandes plus facilement.\n\nQ : Quels sont les modes de paiement acceptés ?\nR : Les commandes peuvent être réglées par MVola ou en espèces à la livraison selon les modalités affichées.\n\nQ : Le paiement MVola est-il sécurisé ?\nR : Oui, les paiements sont traités selon les standards de sécurité du service mobile money, avec une validation explicite de la transaction.\n\nQ : Quels sont les délais de livraison ?\nR : Les délais varient selon la zone. En moyenne, la livraison se fait entre 35 et 45 minutes selon la distance et la charge de trafic.\n\nQ : Livrez-vous la nuit ?\nR : Nos opérations de livraison sont planifiées entre 08h00 et 20h00, 7 jours sur 7.",
+    "GEO-013": "TITLES, H1 & OPEN GRAPH\n\n<title>Plats et produits livrés à Antananarivo | Kaly Livrer</title>\n<meta name=\"description\" content=\"Commandez vos repas et produits à Antananarivo. Livraison rapide, fiable et adaptée à votre quartier.\">\n<link rel=\"canonical\" href=\"https://kaly-livrer.com/plats-et-produits\">\n\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"og:title\" content=\"Plats et produits livrés à Antananarivo | Kaly Livrer\">\n<meta property=\"og:description\" content=\"Commandez vos plats préférés à Antananarivo avec livraison rapide dans votre quartier.\">\n<meta property=\"og:url\" content=\"https://kaly-livrer.com/plats-et-produits\">\n<meta property=\"og:image\" content=\"https://kaly-livrer.com/img/og-catalogue.jpg\">\n<meta property=\"og:locale\" content=\"fr_MG\">\n\n<meta name=\"twitter:card\" content=\"summary_large_image\">",
+    "GEO-014": "NOINDEX SUR ROUTES PRIVÉES\n\nLes pages /panier et /compte ne doivent pas être indexées par les moteurs de recherche.\n\nÀ ajouter dans le <head> :\n\n<meta name=\"robots\" content=\"noindex, nofollow\">\n\nExemple dans un framework de rendu serveur :\nexport const metadata = {\n  robots: {\n    index: false,\n    follow: false\n  }\n};",
+    "GEO-015": "ROBOTS.TXT & SITEMAP.XML\n\n--- /robots.txt ---\nUser-agent: *\nAllow: /\nDisallow: /panier\nDisallow: /compte\nDisallow: /admin\nDisallow: /api/\n\nSitemap: https://kaly-livrer.com/sitemap.xml\n\n--- /sitemap.xml ---\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url>\n    <loc>https://kaly-livrer.com/</loc>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>\n  <url>\n    <loc>https://kaly-livrer.com/plats-et-produits</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n  <url>\n    <loc>https://kaly-livrer.com/contact</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>\n</urlset>",
+    "GEO-016": "REDIRECTIONS 301\n\n--- Netlify — _redirects ---\n/plats&produits    /plats-et-produits    301\n/a-propos&equipe   /a-propos             301\n\n--- Express — exemple de route ---\napp.get('/plats&produits', (req, res) => {\n  res.redirect(301, '/plats-et-produits');\n});\n\n--- Vérification ---\ncurl -I https://kaly-livrer.com/plats&produits",
+    "GEO-017": "BREADCRUMB HTML + JSON-LD\n\n<nav aria-label=\"Fil d'Ariane\">\n  <ol>\n    <li><a href=\"/\">Accueil</a></li>\n    <li><a href=\"/plats-et-produits\">Plats & produits</a></li>\n    <li aria-current=\"page\">Ravitoto sy henakisoa</li>\n  </ol>\n</nav>\n\n<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"BreadcrumbList\",\n  \"itemListElement\": [\n    {\n      \"@type\": \"ListItem\",\n      \"position\": 1,\n      \"name\": \"Accueil\",\n      \"item\": \"https://kaly-livrer.com/\"\n    },\n    {\n      \"@type\": \"ListItem\",\n      \"position\": 2,\n      \"name\": \"Plats & produits\",\n      \"item\": \"https://kaly-livrer.com/plats-et-produits\"\n    }\n  ]\n}\n</script>",
+    "GEO-018": "IMAGES & PERFORMANCE WEB\n\n<picture>\n  <source srcset=\"/img/ravitoto.avif\" type=\"image/avif\">\n  <source srcset=\"/img/ravitoto.webp\" type=\"image/webp\">\n  <img src=\"/img/ravitoto.jpg\"\n       alt=\"Ravitoto sy henakisoa livré à Antananarivo\"\n       width=\"400\"\n       height=\"300\"\n       loading=\"lazy\"\n       decoding=\"async\">\n</picture>\n\nObjectifs Core Web Vitals :\n- LCP < 2.5s\n- INP < 200ms\n- CLS < 0.1\n\nChecklist de validation :\n[ ] Images en WebP / AVIF\n[ ] Attribut alt descriptif\n[ ] width / height définis\n[ ] loading=\"lazy\" sauf pour le hero",
+    "GEO-019": "COHÉRENCE EXTERNE — CHECKLIST\n\n[ ] Facebook\n    - Nom : Kaly Livrer\n    - Adresse identique au site\n    - Téléphone officiel : +261 38 68 133 00\n    - Lien vers https://kaly-livrer.com\n\n[ ] Instagram\n    - Bio avec lien direct\n    - Logo identique\n    - Localisation Antananarivo\n\n[ ] Google Business Profile\n    - Raison sociale : RAPEX GROUP / Kaly Livrer\n    - Horaires : 08h-20h\n    - Photos récentes",
+    "GEO-020": "MESURE DE VISIBILITÉ IA — PANEL 50 PROMPTS\n\nCatégorie 1 : Découverte (10 prompts)\n\"Quel service permet de commander un repas à Antananarivo ?\"\n\nCatégorie 2 : Zone (15 prompts)\n\"Comment se faire livrer un plat à Ivandry ?\"\n\nCatégorie 3 : Type de plat (15 prompts)\n\"Livraison de pizza à Antananarivo ?\"\n\nCatégorie 4 : Marque (10 prompts)\n\"Kaly Livrer avis ?\"\n\nTableau de suivi mensuel :\n| Prompt | Marque citée | Position | Source | Date |",
+    "GEO-021": "MODÈLE LANDING PAR QUARTIER\n\nExemple : /livraison-ivandry\n\nTITLE:\nLivraison de repas à Ivandry | Kaly Livrer\n\nH1:\nVos restaurants préférés livrés chez vous à Ivandry\n\nINTRODUCTION :\nIvandry fait partie de la zone 2 de notre réseau. Comptez 30 à 40 minutes selon le quartier et le trafic.\n\nSECTION — Frais et délais\nZone : 2\nFrais : [Y] Ar\nDélai moyen : 30-40 min\n\nCTA :\nCommandez maintenant sur kaly-livrer.com",
+    "GEO-022": "# Kaly Livrer\n\n> Plateforme de commande de plats et produits à Antananarivo, Madagascar.\n\n## Liens principaux\n- [Accueil](https://kaly-livrer.com/)\n- [Catalogue](https://kaly-livrer.com/plats-et-produits)\n- [Devenir partenaire](https://kaly-livrer.com/devenir-partenaire)\n- [FAQ](https://kaly-livrer.com/aide)\n- [Contact](https://kaly-livrer.com/contact)\n\n## Informations\n- Éditeur : RAPEX GROUP / Kaly Livrer\n- Zone de service : Antananarivo, Madagascar\n- Paiement : MVola, espèces\n- Horaires : 08h00 – 20h00\n- Support client : +261 38 68 133 00"
+  },
+  "templateExtensions": {
+    "GEO-001": "md",
+    "GEO-002": "md",
+    "GEO-005": "md",
+    "GEO-007": "md",
+    "GEO-019": "md",
+    "GEO-020": "md",
+    "GEO-006": "md",
+    "GEO-011": "md",
+    "GEO-012": "md",
+    "GEO-021": "md",
+    "GEO-003": "html",
+    "GEO-004": "html",
+    "GEO-008": "html",
+    "GEO-009": "html",
+    "GEO-010": "html",
+    "GEO-013": "html",
+    "GEO-014": "html",
+    "GEO-015": "txt",
+    "GEO-016": "txt",
+    "GEO-017": "html",
+    "GEO-018": "html",
+    "GEO-022": "txt"
+  }
+}

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr-MG">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<title>Feuille de Route & Dispatching — Kaly Livrer</title>
+<title>Tableau de projet</title>
 <style>
 :root{
   --bg:#f6f8fb;--bg-gradient-1:#eef2f7;--bg-gradient-2:#f9fafb;
@@ -266,7 +266,7 @@ tbody tr:last-child td{border-bottom:none;}
   .card table,.card thead,.card tbody,.card th,.card td,.card tr{display:block;width:100%;}
   .card thead{display:none;}
   .card tr.task-row{background:var(--card-bg);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius);margin-bottom:.85rem;padding:.9rem;box-shadow:var(--shadow-sm);}
-  .card tr.task-row[data-priority="P0"]{border-left-color:#ef4444;}
+  .card tr.task-row[data-critical="true"]{border-left-color:#ef4444;}
   .card tr.task-row[data-priority="P1"]{border-left-color:#f59e0b;}
   .card tr.task-row[data-priority="P2"]{border-left-color:#3b82f6;}
   .card tr.task-row[data-priority="P3"]{border-left-color:#10b981;}
@@ -324,14 +324,11 @@ tbody tr:last-child td{border-bottom:none;}
 <div id="auth-modal" class="modal-backdrop">
   <div class="modal">
     <div style="text-align:center;font-size:2rem;">🔐</div>
-    <h2 class="modal-title">Intranet Kaly Livrer</h2>
+    <h2 class="modal-title" id="auth-app-name">Intranet</h2>
     <p class="modal-subtitle">Sélectionnez votre nom pour accéder aux tâches.</p>
-    <label for="auth-user-select">Membre de l'équipe :</label>
+    <label for="auth-user-select" id="auth-team-label">Membre de l'équipe :</label>
     <select id="auth-user-select" onchange="checkUserAuthStatus()">
       <option value="" disabled selected>-- Choisissez votre prénom --</option>
-      <option value="Eric">Eric</option><option value="Miora">Miora</option>
-      <option value="Tovo">Tovo</option><option value="Nancy">Nancy</option>
-      <option value="Safidy">Safidy</option><option value="Lioka">Lioka</option>
     </select>
     <div id="pin-section" class="hidden">
       <div id="auth-instructions" class="instructions"></div>
@@ -357,7 +354,7 @@ tbody tr:last-child td{border-bottom:none;}
     <header>
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
-          <span style="font-size:.8rem;font-weight:700;color:var(--accent);">🗓️ Publication : 16 octobre 2026</span>
+          <span id="publication-label" style="font-size:.8rem;font-weight:700;color:var(--accent);"></span>
           <span id="publication-deadline" style="font-size:.8rem;font-weight:700;color:var(--danger);background:rgba(220,38,38,.08);padding:.25rem .65rem;border-radius:999px;border:1px solid rgba(220,38,38,.18);">⏳ Deadline : --</span>
         </div>
         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
@@ -366,9 +363,9 @@ tbody tr:last-child td{border-bottom:none;}
           <button onclick="refreshData()" title="Actualiser les données" aria-label="Actualiser les données" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);cursor:pointer;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0;font-size:1rem;box-shadow:var(--shadow-sm);">🔄</button>
         </div>
       </div>
-      <h1 style="margin:.4rem 0 0;color:var(--primary);font-size:1.4rem;">Feuille de Route & Dispatching (22 Tâches) — Audit GEO</h1>
+      <h1 id="main-page-title" style="margin:.4rem 0 0;color:var(--primary);font-size:1.4rem;"></h1>
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.2rem;">
-        <span id="page-visit-summary" style="font-size:.85rem;color:var(--muted);">Plan d'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.</span>
+        <span id="page-visit-summary" style="font-size:.85rem;color:var(--muted);"></span>
         <span id="visitors-badge" class="visitor-badge">Suivi par : --</span>
         <button onclick="sendBroadcastMessage()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--primary);cursor:pointer;padding:.35rem .7rem;border-radius:999px;font-size:.75rem;font-weight:700;">📣 Message aux connectés</button>
       </div>
@@ -379,7 +376,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div style="margin-top:.75rem;">
         <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;">
           <span>Avancement global</span>
-          <span id="progress-text" style="color:var(--accent);">0% (0/22)</span>
+          <span id="progress-text" style="color:var(--accent);">0%</span>
         </div>
         <div class="progress-bg"><div id="progress-bar" class="progress-fill"></div></div>
       </div>
@@ -387,10 +384,10 @@ tbody tr:last-child td{border-bottom:none;}
   </div>
 
   <div class="stats-grid" id="stats-grid">
-    <div class="stat-card"><div class="stat-label">Terminées</div><div class="stat-value" id="stat-done">0</div><div class="stat-sub">sur 22 tâches</div></div>
+    <div class="stat-card"><div class="stat-label">Terminées</div><div class="stat-value" id="stat-done">0</div><div class="stat-sub">sur <span class="task-total">0</span> tâches</div></div>
     <div class="stat-card"><div class="stat-label">En cours (assignées)</div><div class="stat-value" id="stat-progress">0</div><div class="stat-sub">tâches actives</div></div>
-    <div class="stat-card"><div class="stat-label">Non assignées</div><div class="stat-value" id="stat-unassigned">22</div><div class="stat-sub">à dispatcher</div></div>
-    <div class="stat-card"><div class="stat-label">Priorité P0</div><div class="stat-value" id="stat-p0">0</div><div class="stat-sub">restantes</div></div>
+    <div class="stat-card"><div class="stat-label">Non assignées</div><div class="stat-value" id="stat-unassigned">0</div><div class="stat-sub">à dispatcher</div></div>
+    <div class="stat-card"><div class="stat-label" id="stat-critical-label">Priorité critique</div><div class="stat-value" id="stat-p0">0</div><div class="stat-sub">restantes</div></div>
   </div>
 
   <div class="card">
@@ -419,15 +416,10 @@ tbody tr:last-child td{border-bottom:none;}
     <input type="text" id="search-input" placeholder="🔍 Rechercher (Ctrl+K)…" oninput="applyFilters()">
     <select id="filter-assignee" onchange="applyFilters()">
       <option value="">Tous les assignés</option>
-      <option value="Eric">Eric</option><option value="Miora">Miora</option>
-      <option value="Nancy">Nancy</option>
-      <option value="Safidy">Safidy</option><option value="Lioka">Lioka</option>
       <option value="__unassigned__">— Non assignées —</option>
     </select>
     <select id="filter-priority" onchange="applyFilters()">
       <option value="">Toutes priorités</option>
-      <option value="P0">P0 — Critique</option><option value="P1">P1 — Haute</option>
-      <option value="P2">P2 — Moyenne</option><option value="P3">P3 — Basse</option>
     </select>
     <select id="filter-status" onchange="applyFilters()">
       <option value="">Tous statuts</option>
@@ -452,58 +444,7 @@ tbody tr:last-child td{border-bottom:none;}
   </div>
 
   <div id="table-view">
-
-  <div class="card" data-section="po">
-    <div class="card-header">
-      <div><h2 class="card-title">🔴 PO & Commercial <span class="card-count" data-count-for="po">6</span></h2>
-      <span style="font-size:.8rem;color:var(--muted);">Validation faits & tarifs, règles de livraison et mesure de visibilité</span></div>
-      <span style="font-size:.8rem;font-weight:700;">Équipe : Nancy</span>
-    </div>
-    <table>
-      <thead><tr>
-        <th style="width:80px;">ID</th>
-        <th style="width:60px;">Prio</th><th>Tâche & Périmètre</th>
-        <th style="width:140px;">Réalisé par</th><th style="width:80px;text-align:center;">Temps</th>
-        <th style="width:40px;text-align:center;">Fait</th>
-      </tr></thead>
-      <tbody id="tbody-po"></tbody>
-    </table>
-  </div>
-
-  <div class="card" data-section="juridique">
-    <div class="card-header">
-      <div><h2 class="card-title">⚖️ Juridique & Rédac <span class="card-count" data-count-for="juridique">4</span></h2>
-      <span style="font-size:.8rem;color:var(--muted);">Pages légales & FAQ, contenus B2B et landing pages locales</span></div>
-      <span style="font-size:.8rem;font-weight:700;">Équipe : Eric, Miora, Nancy</span>
-    </div>
-    <table>
-      <thead><tr>
-        <th style="width:80px;">ID</th>
-        <th style="width:60px;">Prio</th><th>Tâche & Périmètre</th>
-        <th style="width:140px;">Réalisé par</th><th style="width:80px;text-align:center;">Temps</th>
-        <th style="width:40px;text-align:center;">Fait</th>
-      </tr></thead>
-      <tbody id="tbody-juridique"></tbody>
-    </table>
-  </div>
-
-  <div class="card" data-section="dev">
-    <div class="card-header">
-      <div><h2 class="card-title">💻 Dev & SEO <span class="card-count" data-count-for="dev">12</span></h2>
-      <span style="font-size:.8rem;color:var(--muted);">SSR, JSON-LD, Webperf, balisage HTML, sitemap et infrastructure</span></div>
-      <span style="font-size:.8rem;font-weight:700;">Équipe : Safidy, Lioka</span>
-    </div>
-    <table>
-      <thead><tr>
-        <th style="width:80px;">ID</th>
-        <th style="width:60px;">Prio</th><th>Tâche & Périmètre</th>
-        <th style="width:140px;">Réalisé par</th><th style="width:80px;text-align:center;">Temps</th>
-        <th style="width:40px;text-align:center;">Fait</th>
-      </tr></thead>
-      <tbody id="tbody-dev"></tbody>
-    </table>
-  </div>
-
+    <div id="task-sections"></div>
   </div>
 
   <section id="activity-history" class="card activity-card" aria-labelledby="activity-history-title">
@@ -524,37 +465,35 @@ tbody tr:last-child td{border-bottom:none;}
 
 <script src="/vendor/jszip.min.js"></script>
 <script>
-/* ---------- MIGRATION v2 → v3 ---------- */
-(function migrateV2toV3(){
+function migrateV2toV3(namespace){
   try{
-    const v2 = localStorage.getItem('kaly-livrer-tasks-v2');
-    const v3 = localStorage.getItem('kaly-livrer-tasks-v3');
+    const v2 = localStorage.getItem(namespace + '-tasks-v2');
+    const v3 = localStorage.getItem(namespace + '-tasks-v3');
     if(v2 && !v3){
-      localStorage.setItem('kaly-livrer-tasks-v3', v2);
+      localStorage.setItem(namespace + '-tasks-v3', v2);
       console.log('✅ Migration v2 → v3 effectuée');
     }
-    const v2u = localStorage.getItem('kaly-livrer-users-v2');
-    const v3u = localStorage.getItem('kaly-livrer-users-v3');
+    const v2u = localStorage.getItem(namespace + '-users-v2');
+    const v3u = localStorage.getItem(namespace + '-users-v3');
     if(v2u && !v3u){
-      localStorage.setItem('kaly-livrer-users-v3', v2u);
+      localStorage.setItem(namespace + '-users-v3', v2u);
       console.log('✅ Migration profils utilisateurs v2 → v3 effectuée');
     }
   }catch(e){ console.warn('Migration ignorée:', e); }
-})();
+}
 
-/* =========================================================
-   KALY LIVRER — Feuille de route v4
-   ========================================================= */
-
-const STORAGE_KEY   = 'kaly-livrer-tasks-v3';
-const USERS_KEY     = 'kaly-livrer-users-v3';
-const AUDIT_KEY     = 'kaly-livrer-audit-v3';
-const COMMENTS_KEY  = 'kaly-livrer-comments-v3';
-const SUBTASKS_KEY  = 'kaly-livrer-subtasks-v3';
-const DEADLINES_KEY = 'kaly-livrer-deadlines-v3';
-const SESSION_KEY   = 'kaly-livrer-session-v3';
-const PRESENCE_SESSION_KEY = 'kaly-livrer-presence-session-v1';
-const BROADCAST_SEEN_KEY = 'kaly-livrer-broadcast-seen-v1';
+let APP_CONFIG = null;
+let STORAGE_KEY = '';
+let USERS_KEY = '';
+let AUDIT_KEY = '';
+let COMMENTS_KEY = '';
+let SUBTASKS_KEY = '';
+let DEADLINES_KEY = '';
+let SESSION_KEY = '';
+let PRESENCE_SESSION_KEY = '';
+let BROADCAST_SEEN_KEY = '';
+let TEMPLATE_CACHE_KEY = '';
+let TEMPLATE_EXTENSIONS = {};
 const PRESENCE_HEARTBEAT_MS = 30000;
 
 let currentUser = null;
@@ -590,34 +529,20 @@ let templateSaveWarningShown = false;
 let templateCacheLoaded = false;
 const TEMPLATE_SAVE_TIMERS = {};
 
-/* ---------- DONNÉES STATIQUES DES TÂCHES ---------- */
-const TASKS = [
-  {id:'GEO-001',section:'po',priority:'P0',title:'Identité commerciale & Éditeur',scope:'/legal/mentions, /a-propos — Valider raison sociale et RCS.',time:'1-3 j',detail:'Vérifier et inscrire :\n- Nom officiel : RAPEX SARL\n- Enseigne : Kaly Livrer\n- Numéro RCS / NIF / STAT : [À compléter]\n- Adresse siège : Antananarivo, Madagascar',team:'Nancy'},
-  {id:'GEO-002',section:'po',priority:'P0',title:'Téléphones divergents',scope:'/a-propos, /contact — Fixer un numéro unique.',time:'0.5 j',detail:'Format recommandé :\n- Téléphone principal Support Client : [Numéro Unique]\n- Numéro Direction / Partenariats : [Numéro B2B distinct]',team:'Nancy'},
-  {id:'GEO-005',section:'po',priority:'P0',title:'Chiffres et promesses',scope:'Accueil — Justifier "30 min", "+500 plats", "4.8".',time:'1-2 j',detail:'Remplacer les chiffres approximatifs par :\n- "Livraison moyenne en 35-45 minutes selon la zone à Antananarivo"\n- "+X restaurants partenaires enregistrés"\n- "Note basée sur les avis clients vérifiés"',team:'Nancy'},
-  {id:'GEO-007',section:'po',priority:'P1',title:'Informations de livraison',scope:'/livraison-antananarivo — Grille tarifaire par zone.',time:'3-5 j',detail:'Structure de la page :\n- Zone 1 (Centre ville / Analakely) : Frais X Ar\n- Zone 2 (Ivandry, Ankorondrano) : Frais Y Ar\n- Horaires de livraison : 08h00 - 20h00\n- Modes de paiement : Cash / MVola',team:'Nancy'},
-  {id:'GEO-019',section:'po',priority:'P2',title:'Profils et preuves externes',scope:'Réseaux sociaux, App, Partenaires — Liens réciproques.',time:'30-90 j',detail:'Checklist :\n1. Page Facebook : Aligner adresse, logo et téléphone officiel\n2. Profil Instagram : Lien exact vers la page d\'accueil\n3. Google Business Profile : Même raison sociale RAPEX / Kaly Livrer',team:'Nancy'},
-  {id:'GEO-020',section:'po',priority:'P3',title:'Mesure de visibilité IA & Moteurs',scope:'Tableau mensuel — Suivi du panel de 50 prompts.',time:'Récurrent',detail:'Prompt 001: "Quel service permet de commander un repas à Antananarivo ?"\nPrompt 002: "Comment se faire livrer un plat à Ivandry ?"\nMesure: Marque citée (Oui/Non), position et lien source.',team:'Nancy'},
-  {id:'GEO-006',section:'juridique',priority:'P0',title:'Pages légales contextualisées',scope:'/legal/mentions, /cgu, /privacy — Révision juridique locale.',time:'3-7 j',detail:'Société : RAPEX SARL (Marque Kaly Livrer)\nSiège : Antananarivo, Madagascar\nDirecteur de publication : Eric / Miora\nPaiements acceptés : Mobile Money (MVola) et espèces',team:'Eric, Miora, Nancy'},
-  {id:'GEO-011',section:'juridique',priority:'P1',title:'Page partenaire B2B',scope:'/devenir-partenaire — Landing restaurateurs.',time:'3-5 j',detail:'Title: Devenir restaurant partenaire | Kaly Livrer\nH1: Développez vos ventes avec la livraison à Antananarivo\nSections: Avantages, Taux de commission, Inscription rapide.',team:'Eric, Miora, Nancy'},
-  {id:'GEO-012',section:'juridique',priority:'P1',title:'FAQ transactionnelle',scope:'/aide — Réponses aux questions courantes (Mobile Money, etc.).',time:'3 j',detail:'Q: Puis-je payer un repas par Mobile Money à Antananarivo ?\nR: Oui, Kaly Livrer accepte les paiements par MVola.\n\nQ: Quels sont les délais de livraison ?\nR: Nos livreurs interviennent en moyenne en 30 à 45 minutes selon votre zone.',team:'Eric, Miora, Nancy'},
-  {id:'GEO-021',section:'juridique',priority:'P3',title:'Contenu local unique par zone',scope:'/livraison-antananarivo — Landing pages par quartier.',time:'90 j',detail:'Modèle pour /livraison-ivandry :\nTitle: Livraison de repas à Ivandry | Kaly Livrer\nH1: Vos restaurants préférés livrés chez vous à Ivandry',team:'Eric, Miora, Nancy'},
-  {id:'GEO-003',section:'dev',priority:'P0',title:'Langue déclarée',scope:'Passer de lang="en" à lang="fr-MG" dans le HTML.',time:'0.5 j',detail:'<!-- Avant --> <html lang="en">\n<!-- Après --> <html lang="fr-MG">',team:'Safidy, Lioka'},
-  {id:'GEO-004',section:'dev',priority:'P0',title:'Descriptions en double',scope:'Gabarit global — Supprimer la 2ème meta description.',time:'1 j',detail:'<!-- Conserver uniquement la première balise meta description dynamique -->\n<meta name="description" content="[DESCRIPTION DYNAMIQUE PAR PAGE]">',team:'Safidy, Lioka'},
-  {id:'GEO-008',section:'dev',priority:'P1',title:'Rendu du catalogue (SSR)',scope:'/plats&produits — Plats et prix rendus côté serveur.',time:'5-10 j',detail:'// S\'assurer que le HTML brut généré contient directement les titres et prix des plats\n// Sans attendre le chargement de scripts JavaScript clients pour alimenter le DOM.',team:'Safidy, Lioka'},
-  {id:'GEO-009',section:'dev',priority:'P1',title:'Schema Organization & WebSite',scope:'Gabarit commun — Ajouter JSON-LD Organization.',time:'1-2 j',detail:'Ajouter dans le <head> de chaque page un script JSON-LD de type Organization avec @id, name, url, email, areaServed. Ajouter aussi un script WebSite.',team:'Safidy, Lioka'},
-  {id:'GEO-010',section:'dev',priority:'P1',title:'Schema catalogue',scope:'Fiches plat — Générer Product / Offer.',time:'3-5 j',detail:'Ajouter par plat un script JSON-LD de type Product avec name, image, offers (priceCurrency MGA, price, availability).',team:'Safidy, Lioka'},
-  {id:'GEO-013',section:'dev',priority:'P1',title:'Titles, H1 & Open Graph',scope:'Matrix de balises uniques par gabarit.',time:'2 j',detail:'Ajouter title, meta description, canonical, og:title, og:description, og:url, og:image, og:locale et twitter:card sur chaque page.',team:'Safidy, Lioka'},
-  {id:'GEO-014',section:'dev',priority:'P1',title:'Panier et espace privé',scope:'/panier, compte — Balise noindex sur routes privées.',time:'2 j',detail:'Ajouter dans le <head> de /panier et /compte : meta name="robots" content="noindex, nofollow"',team:'Safidy, Lioka'},
-  {id:'GEO-015',section:'dev',priority:'P2',title:'Sitemap et robots.txt',scope:'/robots.txt, /sitemap.xml — URLs 200 canoniques.',time:'1 j',detail:'robots.txt : User-agent *, Allow /, Disallow /panier /compte, Sitemap. sitemap.xml : URLs principales avec changefreq et priority.',team:'Safidy, Lioka'},
-  {id:'GEO-016',section:'dev',priority:'P2',title:'URLs et canoniques',scope:'Nettoyage des caractères & dans les slugs.',time:'2-4 j',detail:'Rediriger de façon permanente (301) : /plats&produits -> /plats-et-produits',team:'Safidy, Lioka'},
-  {id:'GEO-017',section:'dev',priority:'P2',title:'Maillage et fil d\'Ariane',scope:'Breadcrumbs visibles & BreadcrumbList Schema.',time:'3 j',detail:'Ajouter nav aria-label="Fil d\'Ariane" avec <ol> et <li>, et un script JSON-LD BreadcrumbList.',team:'Safidy, Lioka'},
-  {id:'GEO-018',section:'dev',priority:'P2',title:'Images et performance Web',scope:'Attributs alt, WebP/AVIF et Core Web Vitals.',time:'3-7 j',detail:'<img src="plat.webp" alt="Livraison plat de soupe chinoise à Antananarivo" loading="lazy" width="400" height="300">',team:'Safidy, Lioka'},
-  {id:'GEO-022',section:'dev',priority:'P3',title:'Index éditorial IA (llms.txt)',scope:'/llms.txt — Index vers pages clés.',time:'90 j',detail:'# Kaly Livrer\n> Plateforme de commande de plats et produits à Antananarivo.\n- [Accueil](https://kaly-livrer.com/)\n- [Catalogue](https://kaly-livrer.com/plats-et-produits)\n- [Contact](https://kaly-livrer.com/contact)',team:'Safidy, Lioka'}
-];
+/* ---------- DONNÉES DU PROJET ---------- */
+let TASKS = [];
 
 /* ---------- INITIALISATION ---------- */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  try{
+    await loadProjectConfiguration();
+  }catch(error){
+    console.error('Impossible de charger la configuration du projet:', error);
+    const message = document.getElementById('auth-error');
+    message.textContent = 'Configuration du projet indisponible. Vérifiez le fichier config/app.json et rechargez la page.';
+    message.classList.remove('hidden');
+    return;
+  }
   loadLocalUsers();
   loadMeta();
   tryFetchSystemUsers();
@@ -651,6 +576,79 @@ document.addEventListener('DOMContentLoaded', () => {
   window.setInterval(refreshBroadcastMessages, 10000);
   window.addEventListener('beforeunload', leavePresence);
 });
+
+async function loadProjectConfiguration(){
+  const response = await fetch('/api/config');
+  if(!response.ok) throw new Error('HTTP ' + response.status);
+  const config = await response.json();
+  if(!config || !config.app || !config.team || !Array.isArray(config.sections) ||
+     !Array.isArray(config.priorities) || !Array.isArray(config.tasks) ||
+     !config.templates || !config.templateExtensions){
+    throw new Error('Format de configuration invalide');
+  }
+
+  APP_CONFIG = config;
+  TASKS = config.tasks;
+  TASK_TEMPLATES = config.templates;
+  TEMPLATE_EXTENSIONS = config.templateExtensions;
+  const namespace = config.app.storageNamespace;
+  STORAGE_KEY = namespace + '-tasks-v3';
+  USERS_KEY = namespace + '-users-v3';
+  AUDIT_KEY = namespace + '-audit-v3';
+  COMMENTS_KEY = namespace + '-comments-v3';
+  SUBTASKS_KEY = namespace + '-subtasks-v3';
+  DEADLINES_KEY = namespace + '-deadlines-v3';
+  SESSION_KEY = namespace + '-session-v3';
+  PRESENCE_SESSION_KEY = namespace + '-presence-session-v1';
+  BROADCAST_SEEN_KEY = namespace + '-broadcast-seen-v1';
+  TEMPLATE_CACHE_KEY = namespace + '-template-overrides-v1';
+  migrateV2toV3(namespace);
+
+  document.documentElement.lang = config.app.locale || 'fr';
+  document.title = config.app.title;
+  document.getElementById('auth-app-name').textContent = 'Intranet ' + config.app.name;
+  document.getElementById('auth-team-label').textContent = config.team.label + ' :';
+  document.getElementById('main-page-title').textContent = config.app.title + ' (' + TASKS.length + ' tâches)';
+  document.getElementById('page-visit-summary').textContent = config.app.description;
+  document.querySelectorAll('.task-total').forEach(function(element){ element.textContent = TASKS.length; });
+  const publicationLabel = document.getElementById('publication-label');
+  if(config.app.publicationDate){
+    const date = new Date(config.app.publicationDate + 'T00:00:00');
+    publicationLabel.textContent = '🗓️ Publication : ' + date.toLocaleDateString(config.app.locale || 'fr', {day:'numeric',month:'long',year:'numeric'});
+  }else publicationLabel.remove();
+
+  const authUsers = document.getElementById('auth-user-select');
+  config.team.members.forEach(function(member){
+    const option = document.createElement('option');
+    option.value = member;
+    option.textContent = member;
+    authUsers.appendChild(option);
+  });
+  const assigneeFilter = document.getElementById('filter-assignee');
+  const priorityFilter = document.getElementById('filter-priority');
+  config.team.members.forEach(function(member){
+    const option = document.createElement('option');
+    option.value = member;
+    option.textContent = member;
+    assigneeFilter.insertBefore(option, assigneeFilter.lastElementChild);
+  });
+  config.priorities.forEach(function(priority){
+    const option = document.createElement('option');
+    option.value = priority.id;
+    option.textContent = priority.label;
+    priorityFilter.appendChild(option);
+  });
+  const criticalPriority = config.criticalPriority || config.priorities[0].id;
+  const critical = config.priorities.find(function(priority){ return priority.id === criticalPriority; });
+  document.getElementById('stat-critical-label').textContent =
+    config.criticalPriorityLabel || (critical ? 'Priorité ' + critical.label : 'Priorité critique');
+
+  if(config.app.theme){
+    const theme = config.app.theme;
+    if(/^#[0-9a-f]{6}$/i.test(theme.accent || '')) document.documentElement.style.setProperty('--accent', theme.accent);
+    if(/^#[0-9a-f]{6}$/i.test(theme.accentSecondary || '')) document.documentElement.style.setProperty('--accent-2', theme.accentSecondary);
+  }
+}
 
 function tryFetchSystemUsers(){
   fetch('/api/users')
@@ -820,13 +818,20 @@ function refreshSharedMeta(){
 
 /* ---------- RENDU DES LIGNES ---------- */
 function renderAllRows(){
-  const groups = {po:[],juridique:[],dev:[]};
-  TASKS.forEach(t => { if(groups[t.section]) groups[t.section].push(t); });
-
-  Object.keys(groups).forEach(section=>{
-    const tbody = document.getElementById('tbody-'+section);
-    if(tbody) tbody.innerHTML = groups[section].map(t=>renderRow(t)).join('');
-  });
+  const criticalPriority = APP_CONFIG.criticalPriority || APP_CONFIG.priorities[0].id;
+  document.getElementById('task-sections').innerHTML = APP_CONFIG.sections.map(function(section){
+    const sectionTasks = TASKS.filter(function(task){ return task.section === section.id; });
+    const taskRows = sectionTasks.map(renderRow).join('');
+    const team = section.team ? '<span class="section-team">Équipe : ' + escapeHtml(section.team) + '</span>' : '';
+    return '<section class="card" data-section="' + section.id + '">' +
+      '<div class="card-header"><div><h2 class="card-title">' + escapeHtml(section.title) +
+      ' <span class="card-count" data-count-for="' + section.id + '">' + sectionTasks.length + '</span></h2>' +
+      '<span class="section-description">' + escapeHtml(section.description) + '</span></div>' + team + '</div>' +
+      '<table><thead><tr><th style="width:80px;">ID</th><th style="width:60px;">Prio</th>' +
+      '<th>Tâche & Périmètre</th><th style="width:140px;">Réalisé par</th>' +
+      '<th style="width:80px;text-align:center;">Temps</th><th style="width:40px;text-align:center;">Fait</th></tr></thead>' +
+      '<tbody id="tbody-' + section.id + '">' + taskRows + '</tbody></table></section>';
+  }).join('');
 }
 
 function renderRow(t){
@@ -880,14 +885,14 @@ function renderRow(t){
   ) : '';
 
   return [
-    '<tr class="task-row" data-id="' + t.id + '" data-priority="' + t.priority + '" id="task-' + t.id + '" data-section="' + t.section + '" data-time="' + t.time + '">',
+    '<tr class="task-row" data-id="' + t.id + '" data-priority="' + t.priority + '" data-critical="' + (t.priority === (APP_CONFIG.criticalPriority || APP_CONFIG.priorities[0].id)) + '" id="task-' + t.id + '" data-section="' + t.section + '" data-time="' + escapeHtml(t.time) + '">',
     '<td><strong>' + t.id + '</strong><a href="#task-' + t.id + '" class="anchor-link" title="Lien direct">🔗</a></td>',
     '<td><span class="badge badge-' + t.priority.toLowerCase() + '">' + t.priority + '</span></td>',
     '<td>',
     '<strong>' + escapeHtml(t.title) + '</strong><br>',
     '<small style="color:var(--muted);">' + escapeHtml(t.scope) + '</small>',
     dl,
-    '<div class="task-meta"><span class="chip">⏱ ' + t.time + '</span><span class="chip">📁 ' + t.section + '</span></div><br>',
+    '<div class="task-meta"><span class="chip">⏱ ' + escapeHtml(t.time) + '</span><span class="chip">📁 ' + escapeHtml(APP_CONFIG.sections.find(function(section){ return section.id === t.section; }).title) + '</span></div><br>',
     '<button class="expand-btn" onclick="toggleExpand(\'exp-' + t.id + '\')">📋 Détail technique</button>',
     tpl ? '<button id="tpl-toggle-' + t.id + '" class="expand-btn' + (isTemplateModified(t.id) ? ' template-modified' : '') + '" onclick="toggleExpand(\'tpl-' + t.id + '\')">📝 Modèle prêt à copier' + (isTemplateModified(t.id) ? ' · modifié' : '') + '</button>' : '',
     '<button class="expand-btn" onclick="toggleExpand(\'sub-' + t.id + '\')">✅ Sous-tâches</button>',
@@ -905,7 +910,7 @@ function renderRow(t){
     '<span class="assignee-chip empty" id="chip-' + t.id + '">👤 —</span>',
     '<select class="task-assignee" onchange="handleAssigneeChange(this,\'' + t.id + '\')">',
     '<option value="">-- Choisir --</option>',
-    ['Eric','Miora','Nancy','Safidy','Lioka'].map(u=>'<option value="'+u+'">'+u+'</option>').join(''),
+    APP_CONFIG.team.members.map(function(user){ return '<option value="' + escapeHtml(user) + '">' + escapeHtml(user) + '</option>'; }).join(''),
     '</select>',
     '</td>',
     '<td style="text-align:center;">' + t.time + '</td>',
@@ -1443,6 +1448,7 @@ function updateStatsDashboard(){
   const rows = document.querySelectorAll('.task-row');
   let done=0, progress=0, unassigned=0, p0Remaining=0;
   const byMember = {};
+  const criticalPriority = APP_CONFIG.criticalPriority || APP_CONFIG.priorities[0].id;
 
   rows.forEach(function(row){
     const cb = row.querySelector('.task-cb');
@@ -1453,7 +1459,7 @@ function updateStatsDashboard(){
     if(isDone) done++;
     if(assignee && !isDone) progress++;
     if(!assignee) unassigned++;
-    if(prio==='P0' && !isDone) p0Remaining++;
+    if(prio===criticalPriority && !isDone) p0Remaining++;
     if(assignee){
       if(!byMember[assignee]) byMember[assignee] = {assigned:0,done:0};
       byMember[assignee].assigned++;
@@ -1467,13 +1473,13 @@ function updateStatsDashboard(){
   document.getElementById('stat-p0').textContent = p0Remaining;
 
   const tbody = document.getElementById('workload-tbody');
-  const members = ['Eric','Miora','Nancy','Safidy','Lioka'];
+  const members = APP_CONFIG.team.members;
   tbody.innerHTML = members.map(function(m){
     const d = byMember[m] || {assigned:0,done:0};
     const rem = d.assigned - d.done;
     const pct = d.assigned ? Math.round((d.done/d.assigned)*100) : 0;
     return '<tr>' +
-      '<td><strong>' + m + '</strong></td>' +
+      '<td><strong>' + escapeHtml(m) + '</strong></td>' +
       '<td>' + d.assigned + '</td>' +
       '<td style="color:var(--success);font-weight:700;">' + d.done + '</td>' +
       '<td style="color:' + (rem>0?'var(--danger)':'var(--muted)') + ';font-weight:700;">' + rem + '</td>' +
@@ -1743,7 +1749,7 @@ function exportJSON(){
     audit: auditEntries
   };
   downloadFile(JSON.stringify(data,null,2),
-    'kaly-livrer-taches-' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
+    APP_CONFIG.app.storageNamespace + '-taches-' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
   showToast('Export JSON téléchargé', 'success');
 }
 
@@ -1760,7 +1766,7 @@ function exportCSV(){
     rows.push([id, task.title, task.priority, sel?sel.value:'', cb&&cb.checked?'Terminee':'A faire', task.time, tasksMeta.deadlines[id]||'', subStr]);
   });
   const csv = rows.map(function(r){ return r.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
-  downloadFile('\uFEFF'+csv, 'kaly-livrer-taches-' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv');
+  downloadFile('\uFEFF'+csv, APP_CONFIG.app.storageNamespace + '-taches-' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv');
   showToast('Export CSV téléchargé', 'success');
 }
 
@@ -1863,10 +1869,6 @@ function getPresenceSessionId(){
 }
 
 function updateVisitSummary(userName){
-  const el = document.getElementById('page-visit-summary');
-  if(el){
-    el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — Modèles pré-remplis par Tovo.';
-  }
   if(userName) startPresence(userName);
   else refreshPresence();
 }
@@ -2003,458 +2005,7 @@ window.addEventListener('scroll', updateBackToTopVisibility, {passive:true});
 /* ═══════════════════════════════════════════════════════
    MODÈLES PRÉ-REMPLIS PAR TÂCHE
    ═══════════════════════════════════════════════════════ */
-const TASK_TEMPLATES = {
-  'GEO-001': `MENTIONS LÉGALES — KALY LIVRER
-
-Éditeur du site
-Raison sociale : RAPEX GROUP, société mère de Kaly Livrer
-Enseigne commerciale : Kaly Livrer
-Forme juridique : SARL
-Capital social : 5 000 000 Ar
-Siège social : IIF 09 Fitroafana Talatamaty, Antananarivo 105, Madagascar
-RCS : 2024B00123
-NIF : 3000123456
-STAT : 47812 11 2024 0 12345
-
-Directeur de la publication : Eric
-Email général : contact@kaly-livrer.com
-Téléphone unique : +261 38 68 133 00
-URL : https://kaly-livrer.com
-Hébergeur : o2switch
-
-Rôle de RAPEX GROUP
-RAPEX GROUP est la société mère. Kaly Livrer est une marque exploitée par RAPEX GROUP.
-
-Propriété intellectuelle
-L'ensemble du contenu du site est protégé par le droit applicable. Toute reproduction, copie ou utilisation sans autorisation préalable est interdite.
-
-Informations complémentaires
-- Paiements acceptés : MVola et espèces
-- Horaires de support : 7j/7, 08h-20h
-- Service client : contact@kaly-livrer.com`,
-  'GEO-002': `CONTACTS OFFICIELS — KALY LIVRER
-
-Support client (commandes, livraisons)
-Téléphone : +261 38 68 133 00
-Email : contact@kaly-livrer.com
-Horaires : 7j/7, 08h00-20h00
-
-Partenariats restaurants (B2B)
-Téléphone : +261 38 68 133 00
-Email : contact@kaly-livrer.com
-Horaires : Lun-Ven, 08h00-20h00
-
-Presse & communication
-Email : contact@kaly-livrer.com
-
-Réseaux sociaux
-Facebook : @kalylivrer
-Instagram : @kaly.livrer
-LinkedIn : Kaly Livrer`,
-  'GEO-003': `MODIFICATION HTML — LANGUE DÉCLARÉE
-
-Avant :
-<html lang="en">
-
-Après :
-<html lang="fr-MG">`,
-  'GEO-004': `GABARIT GLOBAL — UNE SEULE META DESCRIPTION
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{titre_dynamique}</title>
-  <meta name="description" content="{description_dynamique}">
-  <link rel="canonical" href="https://kaly-livrer.com/{slug}">
-  <!-- Ne pas ajouter d'autres balises meta description sur la même page -->
-</head>`,
-  'GEO-005': `FORMULATIONS CERTIFIÉES — ACCUEIL
-
-À remplacer partout :
-
-NON : "Livraison en 30 minutes"
-OUI : "Livraison moyenne en 35 à 45 minutes selon votre zone à Antananarivo"
-
-NON : "+500 plats disponibles"
-OUI : "Plus de [X] restaurants partenaires enregistrés à Antananarivo"
-
-NON : "Note 4.8/5"
-OUI : "Note moyenne basée sur les avis clients vérifiés"
-
-NON : "N°1 à Madagascar"
-OUI : "Service de livraison de repas à Antananarivo"
-
-Règle : toute affirmation chiffrée doit être vérifiable, documentée et cohérente avec la réalité exploitée.
-
-Exemple de formulation finale :
-"Kaly Livrer propose une livraison rapide de repas à Antananarivo, avec un délai moyen de 35 à 45 minutes selon la zone."`,
-  'GEO-006': `PAGES LÉGALES — KALY LIVRER
-
---- CONDITIONS GÉNÉRALES D’UTILISATION ---
-1. Objet : permettre à un client de commander des produits alimentaires et d'autres produits disponibles via la plateforme Kaly Livrer.
-2. Entreprise : RAPEX GROUP, société mère de Kaly Livrer, exploitant la marque.
-3. Compte utilisateur : l'utilisateur est responsable de la véracité des informations fournies lors de l'inscription et de la protection de ses identifiants.
-4. Commandes : la commande est acceptée après validation. Le client confirme la commande et les informations de livraison.
-5. Paiement : les paiements peuvent être effectués par MVola ou en espèces selon les modalités affichées sur la plateforme.
-6. Livraison : les délais varient selon la zone de livraison et peuvent être estimés entre 35 et 45 minutes selon la localisation.
-7. Annulation : l'utilisateur peut demander l'annulation d'une commande selon les conditions affichées avant validation.
-8. Responsabilité : Kaly Livrer agit comme intermédiaire de mise en relation entre le client et les prestataires de livraison, sans être producteur des plats livrés.
-9. Données personnelles : les informations sont traitées conformément à la Politique de confidentialité.
-10. Droit applicable : le droit malgache s'applique aux commandes et services proposés.
-
---- POLITIQUE DE CONFIDENTIALITÉ ---
-Données collectées : nom, téléphone, adresse, historique de commande, informations de paiement, informations de livraison.
-Finalité : traiter les commandes, optimiser la livraison, répondre aux demandes clients et améliorer le service.
-Base légale : exécution du contrat, obligations légales et intérêt légitime.
-Conservation : données conservées pendant la durée nécessaire au service demandé, puis éliminées ou anonymisées selon la réglementation.
-Droits : accès, rectification, suppression, opposition et limitation du traitement.
-Contact : contact@kaly-livrer.com`,
-  'GEO-007': `GRILLE TARIFAIRE OFFICIELLE — KALY LIVRER
-
-| Tranche (km) | Tarif client | Part KL (20 %) | Net livreur (80 %) |
-|---|---:|---:|---:|
-| 0,1 – 4,5 | 7 500 Ar | 1 500 Ar | 6 000 Ar |
-| 4,6 – 7,5 | 10 000 Ar | 2 000 Ar | 8 000 Ar |
-| 7,6 – 9,5 | 12 500 Ar | 2 500 Ar | 10 000 Ar |
-| 9,6 – 11,5 | 17 500 Ar | 3 500 Ar | 14 000 Ar |
-| 11,6 – 13,5 | 20 000 Ar | 4 000 Ar | 16 000 Ar |
-| 13,6 – 15,5 | 22 500 Ar | 4 500 Ar | 18 000 Ar |
-| 15,6 – 17,5 | 25 000 Ar | 5 000 Ar | 20 000 Ar |
-| 17,6 – 19,5 | 27 500 Ar | 5 500 Ar | 22 000 Ar |
-| 19,6 – 21,5 | 30 000 Ar | 6 000 Ar | 24 000 Ar |
-| 21,6 – 23,5 | 32 500 Ar | 6 500 Ar | 26 000 Ar |
-| 23,6 – 25,5 | 41 500 Ar | 8 300 Ar | 33 200 Ar |
-| 25,6 – 27,5 | 50 000 Ar | 10 000 Ar | 40 000 Ar |
-| 27,6 – 29,5 | 62 500 Ar | 12 500 Ar | 50 000 Ar |
-| 29,6 – 31,5 | 75 000 Ar | 15 000 Ar | 60 000 Ar |
-
-Règles d’usage :
-- Les frais de livraison sont calculés selon la distance estimée.
-- Les tarifs sont affichés en Ariary Malgache (Ar).
-- Les montants restent valables pour les zones couvertes à Antananarivo.
-- Le support client est joignable au +261 38 68 133 00.`,
-  'GEO-008': `SSR — CATALOGUE /plats-et-produits
-
-Le HTML brut doit contenir les données de catalogue sans dépendre du client JavaScript.
-
-Exemple de structure serveur valide :
-
-<main>
-  <h1>Plats et produits livrés à Antananarivo</h1>
-  <section class="catalogue" aria-label="Catalogue Kaly Livrer">
-    <article class="product-card">
-      <h2>Ravitoto sy henakisoa</h2>
-      <p class="price">15 000 Ar</p>
-      <img src="/img/ravitoto.webp" alt="Ravitoto sy henakisoa livré à Antananarivo" loading="lazy">
-    </article>
-    <article class="product-card">
-      <h2>Romazava</h2>
-      <p class="price">12 500 Ar</p>
-    </article>
-  </section>
-</main>
-
-Validation recommandée :
-curl -s https://kaly-livrer.com/plats-et-produits | grep -i "Ravitoto\|Romazava"`,
-  'GEO-009': `JSON-LD ORGANIZATION + WEBSITE
-
-À ajouter dans le <head> de chaque page :
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://kaly-livrer.com/#organization",
-      "name": "Kaly Livrer",
-      "legalName": "RAPEX GROUP",
-      "url": "https://kaly-livrer.com/",
-      "logo": "https://kaly-livrer.com/img/logo.png",
-      "email": "contact@kaly-livrer.com",
-      "telephone": "+261386813300",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Antananarivo",
-        "addressCountry": "MG"
-      }
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://kaly-livrer.com/#website",
-      "url": "https://kaly-livrer.com/",
-      "name": "Kaly Livrer",
-      "publisher": { "@id": "https://kaly-livrer.com/#organization" },
-      "inLanguage": "fr-MG"
-    }
-  ]
-}
-<\/script>`,
-  'GEO-010': `JSON-LD PRODUCT (par plat)
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "Ravitoto sy henakisoa",
-  "image": "https://kaly-livrer.com/img/ravitoto.webp",
-  "sku": "PLAT-001",
-  "brand": {
-    "@type": "Brand",
-    "name": "Kaly Livrer"
-  },
-  "offers": {
-    "@type": "Offer",
-    "priceCurrency": "MGA",
-    "price": "15000",
-    "availability": "https://schema.org/InStock",
-    "url": "https://kaly-livrer.com/plats-et-produits/ravitoto-sy-henakisoa"
-  }
-}
-<\/script>
-
-À répliquer pour chaque produit du catalogue avec un identifiant unique, un nom exact, un prix en MGA et une URL canonique.`,
-  'GEO-011': `LANDING B2B — DEVENIR PARTENAIRE
-
-TITLE:
-Devenir restaurant partenaire à Antananarivo | Kaly Livrer
-
-H1:
-Développez vos ventes avec la livraison à Antananarivo
-
-Introduction :
-Kaly Livrer aide les restaurants de la capitale à vendre davantage grâce à une solution de commande et de livraison simple, rapide et fiable.
-
-Pourquoi rejoindre Kaly Livrer ?
-- Accès à une clientèle active dans les quartiers d'Antananarivo
-- Livraison rapide, avec un délai moyen de 35 à 45 minutes selon la zone
-- Paiement sécurisé via MVola et espèces selon les conditions de service
-- Support client disponible 7j/7
-
-Modèle de proposition commerciale :
-Commission estimée : [X]% par commande
-Coût d'inscription : 0 Ar
-Moyen de paiement : MVola / virement / cash
-Fréquence de paiement : hebdomadaire ou mensuelle selon accord
-
-CTA :
-Appelez-nous au +261 38 68 133 00 ou écrivez à contact@kaly-livrer.com`,
-  'GEO-012': `FAQ TRANSACTIONNELLE — /aide
-
-Q : Comment passer une commande ?
-R : Sélectionnez votre restaurant, ajoutez les plats au panier, choisissez votre quartier et validez votre commande sur la plateforme Kaly Livrer.
-
-Q : Puis-je commander sans compte ?
-R : Oui, il est possible de passer une commande en tant qu'invité. Un compte peut toutefois être créé pour suivre les commandes plus facilement.
-
-Q : Quels sont les modes de paiement acceptés ?
-R : Les commandes peuvent être réglées par MVola ou en espèces à la livraison selon les modalités affichées.
-
-Q : Le paiement MVola est-il sécurisé ?
-R : Oui, les paiements sont traités selon les standards de sécurité du service mobile money, avec une validation explicite de la transaction.
-
-Q : Quels sont les délais de livraison ?
-R : Les délais varient selon la zone. En moyenne, la livraison se fait entre 35 et 45 minutes selon la distance et la charge de trafic.
-
-Q : Livrez-vous la nuit ?
-R : Nos opérations de livraison sont planifiées entre 08h00 et 20h00, 7 jours sur 7.`,
-  'GEO-013': `TITLES, H1 & OPEN GRAPH
-
-<title>Plats et produits livrés à Antananarivo | Kaly Livrer</title>
-<meta name="description" content="Commandez vos repas et produits à Antananarivo. Livraison rapide, fiable et adaptée à votre quartier.">
-<link rel="canonical" href="https://kaly-livrer.com/plats-et-produits">
-
-<meta property="og:type" content="website">
-<meta property="og:title" content="Plats et produits livrés à Antananarivo | Kaly Livrer">
-<meta property="og:description" content="Commandez vos plats préférés à Antananarivo avec livraison rapide dans votre quartier.">
-<meta property="og:url" content="https://kaly-livrer.com/plats-et-produits">
-<meta property="og:image" content="https://kaly-livrer.com/img/og-catalogue.jpg">
-<meta property="og:locale" content="fr_MG">
-
-<meta name="twitter:card" content="summary_large_image">`,
-  'GEO-014': `NOINDEX SUR ROUTES PRIVÉES
-
-Les pages /panier et /compte ne doivent pas être indexées par les moteurs de recherche.
-
-À ajouter dans le <head> :
-
-<meta name="robots" content="noindex, nofollow">
-
-Exemple dans un framework de rendu serveur :
-export const metadata = {
-  robots: {
-    index: false,
-    follow: false
-  }
-};`,
-  'GEO-015': `ROBOTS.TXT & SITEMAP.XML
-
---- /robots.txt ---
-User-agent: *
-Allow: /
-Disallow: /panier
-Disallow: /compte
-Disallow: /admin
-Disallow: /api/
-
-Sitemap: https://kaly-livrer.com/sitemap.xml
-
---- /sitemap.xml ---
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://kaly-livrer.com/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://kaly-livrer.com/plats-et-produits</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://kaly-livrer.com/contact</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-</urlset>`,
-  'GEO-016': `REDIRECTIONS 301
-
---- Netlify — _redirects ---
-/plats&produits    /plats-et-produits    301
-/a-propos&equipe   /a-propos             301
-
---- Express — exemple de route ---
-app.get('/plats&produits', (req, res) => {
-  res.redirect(301, '/plats-et-produits');
-});
-
---- Vérification ---
-curl -I https://kaly-livrer.com/plats&produits`,
-  'GEO-017': `BREADCRUMB HTML + JSON-LD
-
-<nav aria-label="Fil d'Ariane">
-  <ol>
-    <li><a href="/">Accueil</a></li>
-    <li><a href="/plats-et-produits">Plats & produits</a></li>
-    <li aria-current="page">Ravitoto sy henakisoa</li>
-  </ol>
-</nav>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Accueil",
-      "item": "https://kaly-livrer.com/"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Plats & produits",
-      "item": "https://kaly-livrer.com/plats-et-produits"
-    }
-  ]
-}
-<\/script>`,
-  'GEO-018': `IMAGES & PERFORMANCE WEB
-
-<picture>
-  <source srcset="/img/ravitoto.avif" type="image/avif">
-  <source srcset="/img/ravitoto.webp" type="image/webp">
-  <img src="/img/ravitoto.jpg"
-       alt="Ravitoto sy henakisoa livré à Antananarivo"
-       width="400"
-       height="300"
-       loading="lazy"
-       decoding="async">
-</picture>
-
-Objectifs Core Web Vitals :
-- LCP < 2.5s
-- INP < 200ms
-- CLS < 0.1
-
-Checklist de validation :
-[ ] Images en WebP / AVIF
-[ ] Attribut alt descriptif
-[ ] width / height définis
-[ ] loading="lazy" sauf pour le hero`,
-  'GEO-019': `COHÉRENCE EXTERNE — CHECKLIST
-
-[ ] Facebook
-    - Nom : Kaly Livrer
-    - Adresse identique au site
-    - Téléphone officiel : +261 38 68 133 00
-    - Lien vers https://kaly-livrer.com
-
-[ ] Instagram
-    - Bio avec lien direct
-    - Logo identique
-    - Localisation Antananarivo
-
-[ ] Google Business Profile
-    - Raison sociale : RAPEX GROUP / Kaly Livrer
-    - Horaires : 08h-20h
-    - Photos récentes`,
-  'GEO-020': `MESURE DE VISIBILITÉ IA — PANEL 50 PROMPTS
-
-Catégorie 1 : Découverte (10 prompts)
-"Quel service permet de commander un repas à Antananarivo ?"
-
-Catégorie 2 : Zone (15 prompts)
-"Comment se faire livrer un plat à Ivandry ?"
-
-Catégorie 3 : Type de plat (15 prompts)
-"Livraison de pizza à Antananarivo ?"
-
-Catégorie 4 : Marque (10 prompts)
-"Kaly Livrer avis ?"
-
-Tableau de suivi mensuel :
-| Prompt | Marque citée | Position | Source | Date |`,
-  'GEO-021': `MODÈLE LANDING PAR QUARTIER
-
-Exemple : /livraison-ivandry
-
-TITLE:
-Livraison de repas à Ivandry | Kaly Livrer
-
-H1:
-Vos restaurants préférés livrés chez vous à Ivandry
-
-INTRODUCTION :
-Ivandry fait partie de la zone 2 de notre réseau. Comptez 30 à 40 minutes selon le quartier et le trafic.
-
-SECTION — Frais et délais
-Zone : 2
-Frais : [Y] Ar
-Délai moyen : 30-40 min
-
-CTA :
-Commandez maintenant sur kaly-livrer.com`,
-  'GEO-022': `# Kaly Livrer
-
-> Plateforme de commande de plats et produits à Antananarivo, Madagascar.
-
-## Liens principaux
-- [Accueil](https://kaly-livrer.com/)
-- [Catalogue](https://kaly-livrer.com/plats-et-produits)
-- [Devenir partenaire](https://kaly-livrer.com/devenir-partenaire)
-- [FAQ](https://kaly-livrer.com/aide)
-- [Contact](https://kaly-livrer.com/contact)
-
-## Informations
-- Éditeur : RAPEX GROUP / Kaly Livrer
-- Zone de service : Antananarivo, Madagascar
-- Paiement : MVola, espèces
-- Horaires : 08h00 – 20h00
-- Support client : +261 38 68 133 00`
-};
+let TASK_TEMPLATES = {};
 
 function getTemplate(taskId){
   return Object.prototype.hasOwnProperty.call(TEMPLATE_OVERRIDES, taskId) ?
@@ -2475,7 +2026,7 @@ function updateTemplateButton(taskId){
 
 function saveTemplateCache(){
   try{
-    localStorage.setItem('kaly-livrer-template-overrides-v1', JSON.stringify(TEMPLATE_OVERRIDES));
+    localStorage.setItem(TEMPLATE_CACHE_KEY, JSON.stringify(TEMPLATE_OVERRIDES));
   }catch(error){
     console.error('Impossible de sauvegarder le cache local des modèles:', error);
   }
@@ -2485,7 +2036,7 @@ function loadTemplateCache(){
   if(templateCacheLoaded) return;
   templateCacheLoaded = true;
   try{
-    const cached = JSON.parse(localStorage.getItem('kaly-livrer-template-overrides-v1') || '{}');
+    const cached = JSON.parse(localStorage.getItem(TEMPLATE_CACHE_KEY) || '{}');
     if(!cached || typeof cached !== 'object' || Array.isArray(cached)) return;
     Object.keys(cached).forEach(function(taskId){
       if(typeof TASK_TEMPLATES[taskId] === 'string' && typeof cached[taskId] === 'string'){
@@ -2613,15 +2164,7 @@ function saveTemplate(taskId, showNotification){
 }
 
 function getExtForTask(taskId){
-  const map = {
-    'GEO-001':'md','GEO-002':'md','GEO-005':'md','GEO-007':'md',
-    'GEO-019':'md','GEO-020':'md',
-    'GEO-006':'md','GEO-011':'md','GEO-012':'md','GEO-021':'md',
-    'GEO-003':'html','GEO-004':'html','GEO-008':'html','GEO-009':'html',
-    'GEO-010':'html','GEO-013':'html','GEO-014':'html','GEO-015':'txt',
-    'GEO-016':'txt','GEO-017':'html','GEO-018':'html','GEO-022':'txt'
-  };
-  return map[taskId] || 'txt';
+  return TEMPLATE_EXTENSIONS[taskId] || 'txt';
 }
 
 function copyTemplate(taskId, btn){
@@ -2685,14 +2228,15 @@ function runZipGeneration(state){
   };
 
   const zip = new JSZip();
-  const root = zip.folder('kaly-livrer-audit-geo-livrable');
+  const root = zip.folder(APP_CONFIG.app.storageNamespace + '-livrable');
 
   const s1 = logStep('Création du dossier racine…');
-  const sections = {
-    po: {name:'01-PO-commercial', tasks:[]},
-    juridique: {name:'02-Juridique-redac', tasks:[]},
-    dev: {name:'03-Dev-SEO', tasks:[]}
-  };
+  const sections = {};
+  APP_CONFIG.sections.forEach(function(section, index){
+    const safeName = section.title.normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '') || section.id;
+    sections[section.id] = {name:String(index + 1).padStart(2, '0') + '-' + safeName, tasks:[]};
+  });
   document.querySelectorAll('.task-row').forEach(function(row){
     const id = row.getAttribute('data-id');
     const sec = row.getAttribute('data-section');
@@ -2744,7 +2288,7 @@ function runZipGeneration(state){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'kaly-livrer-audit-geo-livrable-' + new Date().toISOString().slice(0,10) + '.zip';
+    a.download = APP_CONFIG.app.storageNamespace + '-livrable-' + new Date().toISOString().slice(0,10) + '.zip';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

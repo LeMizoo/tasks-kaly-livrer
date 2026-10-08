@@ -1,0 +1,46 @@
+{
+  "app": {
+    "name": "Mon projet",
+    "title": "Tableau de suivi — Mon projet",
+    "description": "Suivi partagé des tâches de l’équipe.",
+    "storageNamespace": "mon-projet",
+    "locale": "fr",
+    "theme": {
+      "accent": "#2563eb",
+      "accentSecondary": "#38bdf8"
+    }
+  },
+  "team": {
+    "label": "Membre de l’équipe",
+    "members": ["Alex", "Sam"]
+  },
+  "sections": [
+    {
+      "id": "delivery",
+      "title": "Livraison",
+      "description": "Travail à réaliser pour le projet.",
+      "team": "Alex, Sam"
+    }
+  ],
+  "priorities": [
+    { "id": "high", "label": "Haute" },
+    { "id": "normal", "label": "Normale" },
+    { "id": "low", "label": "Basse" }
+  ],
+  "criticalPriority": "high",
+  "criticalPriorityLabel": "Priorité haute",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "section": "delivery",
+      "priority": "high",
+      "title": "Première tâche",
+      "scope": "Décrire le périmètre de cette tâche.",
+      "time": "1 jour",
+      "detail": "Ajouter ici les instructions utiles à l’équipe.",
+      "team": "Alex"
+    }
+  ],
+  "templates": {},
+  "templateExtensions": {}
+}
