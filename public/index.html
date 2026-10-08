@@ -352,7 +352,7 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
       <h1 style="margin:.4rem 0 0;color:var(--primary);font-size:1.4rem;">Feuille de Route & Dispatching (22 Tâches) — Audit GEO</h1>
-      <p style="font-size:.85rem;color:var(--muted);margin:.2rem 0 0;">Plan d'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.</p>
+      <p id="page-visit-summary" style="font-size:.85rem;color:var(--muted);margin:.2rem 0 0;">Plan d'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.</p>
       <div style="margin-top:.75rem;">
         <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;">
           <span>Avancement global</span>
@@ -518,6 +518,7 @@ const COMMENTS_KEY  = 'kaly-livrer-comments-v3';
 const SUBTASKS_KEY  = 'kaly-livrer-subtasks-v3';
 const DEADLINES_KEY = 'kaly-livrer-deadlines-v3';
 const SESSION_KEY   = 'kaly-livrer-session-v3';
+const VISITORS_KEY  = 'kaly-livrer-visitors-v3';
 
 let currentUser = null;
 let systemUsers = {};
@@ -778,6 +779,7 @@ function loginSuccess(user, silent){
   const hh = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   const dd = now.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
   document.getElementById('current-session-user').innerText = 'Session : ' + user + ' · démarrée à ' + hh + ' (' + dd + ')';
+  updateVisitSummary(user);
 
   if(!silent){
     clearTimeout(window.__welcomeTimeout);
@@ -851,6 +853,7 @@ function logout(){
   document.getElementById('welcome-banner').classList.add('hidden');
   document.getElementById('auth-user-select').value = '';
   document.getElementById('pin-section').classList.add('hidden');
+  updateVisitSummary();
 }
 
 /* ---------- PERSISTANCE DES TÂCHES ---------- */
@@ -1300,6 +1303,36 @@ function updatePublicationDeadline(){
   const seconds = totalSeconds % 60;
 
   el.textContent = '⏳ Deadline : ' + days + 'j ' + String(hours).padStart(2,'0') + 'h ' + String(minutes).padStart(2,'0') + 'm ' + String(seconds).padStart(2,'0') + 's';
+}
+
+function getVisitors(){
+  try{
+    const raw = localStorage.getItem(VISITORS_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveVisitors(list){
+  try{ localStorage.setItem(VISITORS_KEY, JSON.stringify(list.slice(0,20))); }catch(e){}
+}
+
+function updateVisitSummary(userName){
+  const el = document.getElementById('page-visit-summary');
+  if(!el) return;
+
+  const current = getVisitors();
+  if(userName && !current.includes(userName)) current.push(userName);
+  const unique = Array.from(new Set(current)).filter(Boolean);
+  saveVisitors(unique);
+
+  if(unique.length > 0){
+    el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — suivi par ' + unique.join(', ') + '.';
+  }else{
+    el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.';
+  }
 }
 
 /* ---------- RETOUR EN HAUT ---------- */
@@ -1948,6 +1981,7 @@ function setupKeyboardShortcuts(){
 
 updatePublicationDeadline();
 setInterval(updatePublicationDeadline, 1000);
+updateVisitSummary();
 
 window.addEventListener('beforeunload', function(){
   if(currentUser) saveTasksState();
