@@ -108,7 +108,7 @@ header::before{
 .alert-badge.warning{background:#fef3c7;color:#92400e;}
 .alert-badge.success{background:var(--success-bg);color:var(--success);}
 .visitor-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:700;color:#0f766e;background:linear-gradient(135deg,rgba(16,185,129,.16),rgba(52,211,153,.08));padding:.35rem .8rem;border-radius:999px;border:1px solid rgba(16,185,129,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 6px 18px -10px rgba(16,185,129,.5);letter-spacing:.01em;}
-.visitor-badge::before{content:'👀';font-size:.78rem;filter:drop-shadow(0 2px 8px rgba(16,185,129,.25));}
+.visitor-badge::before{content:'●';font-size:.6rem;color:#059669;filter:drop-shadow(0 0 4px rgba(16,185,129,.45));}
 .access-summary{display:flex;align-items:center;gap:.45rem .9rem;flex-wrap:wrap;margin-top:.6rem;font-size:.72rem;color:var(--muted);}
 .access-summary strong{color:var(--primary);}
 .access-summary-count{display:inline-flex;align-items:center;justify-content:center;min-width:1.45rem;height:1.45rem;padding:0 .35rem;border-radius:999px;background:var(--success-bg);color:var(--success);font-weight:800;}
@@ -549,7 +549,8 @@ const COMMENTS_KEY  = 'kaly-livrer-comments-v3';
 const SUBTASKS_KEY  = 'kaly-livrer-subtasks-v3';
 const DEADLINES_KEY = 'kaly-livrer-deadlines-v3';
 const SESSION_KEY   = 'kaly-livrer-session-v3';
-const VISITORS_KEY  = 'kaly-livrer-visitors-v3';
+const PRESENCE_SESSION_KEY = 'kaly-livrer-presence-session-v1';
+const PRESENCE_HEARTBEAT_MS = 30000;
 
 let currentUser = null;
 let systemUsers = {};
@@ -559,6 +560,8 @@ let auditSummary = null;
 let auditSyncWarningShown = false;
 let knownAuditIds = new Set();
 let auditInitialized = false;
+let presenceSessionId = null;
+let presenceHeartbeatTimer = null;
 
 /* ---------- DONNÉES STATIQUES DES TÂCHES ---------- */
 const TASKS = [
@@ -599,6 +602,8 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshAudit();
   window.setInterval(refreshAudit, 10000);
   window.addEventListener('focus', refreshAudit);
+  window.setInterval(refreshPresence, 15000);
+  window.addEventListener('beforeunload', leavePresence);
 });
 
 function tryFetchSystemUsers(){
@@ -907,7 +912,7 @@ function logout(){
   document.getElementById('welcome-banner').classList.add('hidden');
   document.getElementById('auth-user-select').value = '';
   document.getElementById('pin-section').classList.add('hidden');
-  updateVisitSummary();
+  stopPresence();
 }
 
 /* ---------- PERSISTANCE DES TÂCHES ---------- */
@@ -1464,46 +1469,101 @@ function updatePublicationDeadline(){
   el.textContent = '⏳ Deadline : ' + days + 'j ' + String(hours).padStart(2,'0') + 'h ' + String(minutes).padStart(2,'0') + 'm ' + String(seconds).padStart(2,'0') + 's';
 }
 
-function getVisitors(){
+function getPresenceSessionId(){
+  if(presenceSessionId) return presenceSessionId;
   try{
-    const raw = localStorage.getItem(VISITORS_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
+    presenceSessionId = sessionStorage.getItem(PRESENCE_SESSION_KEY);
+    if(!presenceSessionId){
+      presenceSessionId = window.crypto && window.crypto.randomUUID ?
+        window.crypto.randomUUID() : 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      sessionStorage.setItem(PRESENCE_SESSION_KEY, presenceSessionId);
+    }
   }catch(e){
-    return [];
+    presenceSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
   }
-}
-
-function saveVisitors(list){
-  try{ localStorage.setItem(VISITORS_KEY, JSON.stringify(list.slice(0,20))); }catch(e){}
+  return presenceSessionId;
 }
 
 function updateVisitSummary(userName){
   const el = document.getElementById('page-visit-summary');
-  const badge = document.getElementById('visitors-badge');
-
-  const current = getVisitors();
-  if(userName && !current.includes(userName)) current.push(userName);
-  const unique = Array.from(new Set(current)).filter(Boolean);
-  saveVisitors(unique);
-
   if(el){
-    if(unique.length > 0){
-      el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — Modèles pré-remplis par Tovo.';
-    }else{
-      el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.';
-    }
+    el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — Modèles pré-remplis par Tovo.';
   }
+  if(userName) startPresence(userName);
+  else refreshPresence();
+}
 
-  if(badge){
-    if(unique.length > 0){
-      badge.textContent = 'Suivi par : ' + unique.join(', ');
-      badge.style.display = 'inline-flex';
-    }else{
-      badge.textContent = 'Suivi par : --';
-      badge.style.display = 'inline-flex';
-    }
+function startPresence(userName){
+  getPresenceSessionId();
+  sendPresenceHeartbeat(userName);
+  if(presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+  presenceHeartbeatTimer = setInterval(function(){
+    if(currentUser) sendPresenceHeartbeat(currentUser);
+  }, PRESENCE_HEARTBEAT_MS);
+}
+
+function sendPresenceHeartbeat(userName){
+  fetch('/api/presence', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user:userName,sessionId:getPresenceSessionId()})
+  }).then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(data){
+    renderConnectedUsers(data.users);
+  }).catch(function(error){
+    console.error('Impossible de mettre à jour la présence:', error);
+  });
+}
+
+function refreshPresence(){
+  fetch('/api/presence').then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(data){
+    renderConnectedUsers(data.users);
+  }).catch(function(error){
+    console.error('Impossible de charger les utilisateurs connectés:', error);
+  });
+}
+
+function renderConnectedUsers(users){
+  const badge = document.getElementById('visitors-badge');
+  if(!badge) return;
+  const names = Array.isArray(users) ? Array.from(new Set(users.filter(function(user){
+    return typeof user==='string' && user;
+  }))) : [];
+  badge.textContent = names.length ? 'Suivi par : ' + names.join(', ') : 'Suivi par : personne';
+  badge.title = names.length ? names.length + ' utilisateur(s) connecté(s)' : 'Aucun utilisateur connecté';
+}
+
+function stopPresence(){
+  if(presenceHeartbeatTimer){
+    clearInterval(presenceHeartbeatTimer);
+    presenceHeartbeatTimer = null;
   }
+  leavePresence();
+}
+
+function leavePresence(){
+  if(!presenceSessionId) return;
+  const sessionId = presenceSessionId;
+  presenceSessionId = null;
+  try{ sessionStorage.removeItem(PRESENCE_SESSION_KEY); }catch(e){}
+  fetch('/api/presence', {
+    method:'DELETE',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sessionId:sessionId}),
+    keepalive:true
+  }).then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(data){
+    renderConnectedUsers(data.users);
+  }).catch(function(error){
+    console.error('Impossible de fermer la présence:', error);
+  });
 }
 
 /* ---------- RETOUR EN HAUT ---------- */

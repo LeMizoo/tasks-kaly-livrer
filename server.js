@@ -13,6 +13,8 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.json');
 
 const ALLOWED_USERS = ["Eric", "Miora", "Tovo", "Nancy", "Safidy", "Lioka"];
+const PRESENCE_TIMEOUT_MS = 90 * 1000;
+const activeSessions = new Map();
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(TASKS_FILE)) fs.writeFileSync(TASKS_FILE, JSON.stringify({}));
@@ -22,6 +24,42 @@ if (!fs.existsSync(AUDIT_FILE)) fs.writeFileSync(AUDIT_FILE, JSON.stringify([]))
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+function getActiveUsers() {
+    const cutoff = Date.now() - PRESENCE_TIMEOUT_MS;
+    for (const [sessionId, session] of activeSessions) {
+        if (session.lastSeen < cutoff) activeSessions.delete(sessionId);
+    }
+    return [...new Set([...activeSessions.values()].map(session => session.user))]
+        .sort((a, b) => ALLOWED_USERS.indexOf(a) - ALLOWED_USERS.indexOf(b));
+}
+
+app.get('/api/presence', (req, res) => {
+    res.json({ users: getActiveUsers() });
+});
+
+app.post('/api/presence', (req, res) => {
+    const { user, sessionId } = req.body || {};
+    if (
+        typeof user !== 'string' || !ALLOWED_USERS.includes(user) ||
+        typeof sessionId !== 'string' || !/^[a-zA-Z0-9_-]{16,100}$/.test(sessionId)
+    ) {
+        return res.status(400).json({ error: "Données de présence invalides" });
+    }
+
+    activeSessions.set(sessionId, { user, lastSeen: Date.now() });
+    res.json({ users: getActiveUsers() });
+});
+
+app.delete('/api/presence', (req, res) => {
+    const { sessionId } = req.body || {};
+    if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9_-]{16,100}$/.test(sessionId)) {
+        return res.status(400).json({ error: "Identifiant de session invalide" });
+    }
+
+    activeSessions.delete(sessionId);
+    res.json({ users: getActiveUsers() });
+});
 
 app.get('/api/tasks', (req, res) => {
     fs.readFile(TASKS_FILE, 'utf8', (err, data) => {
