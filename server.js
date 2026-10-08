@@ -36,6 +36,13 @@ function getActiveUsers() {
         .sort((a, b) => ALLOWED_USERS.indexOf(a) - ALLOWED_USERS.indexOf(b));
 }
 
+function appendAuditEntry(entry) {
+    const entries = JSON.parse(fs.readFileSync(AUDIT_FILE, 'utf8') || '[]');
+    if (!Array.isArray(entries)) throw new Error('Invalid audit data');
+    entries.unshift(entry);
+    fs.writeFileSync(AUDIT_FILE, JSON.stringify(entries.slice(0, 500), null, 2));
+}
+
 app.get('/api/presence', (req, res) => {
     res.json({ users: getActiveUsers() });
 });
@@ -85,14 +92,30 @@ app.post('/api/messages', (req, res) => {
     }
 
     const now = Date.now();
+    const id = crypto.randomUUID();
+    const date = new Date(now).toISOString();
+    try {
+        appendAuditEntry({
+            id,
+            user,
+            action: "message diffusé",
+            taskId: "MESSAGE",
+            detail: text.trim(),
+            date
+        });
+    } catch (err) {
+        console.error("Erreur d'écriture de l'historique:", err);
+        return res.status(500).json({ error: "Erreur d'écriture de l'historique" });
+    }
+
     while (broadcastMessages.length && now - broadcastMessages[0].createdAt > BROADCAST_MESSAGE_TTL_MS) {
         broadcastMessages.shift();
     }
     broadcastMessages.push({
-        id: crypto.randomUUID(),
+        id,
         user,
         text: text.trim(),
-        date: new Date(now).toISOString(),
+        date,
         createdAt: now,
         recipients
     });
@@ -178,9 +201,7 @@ app.post('/api/audit', (req, res) => {
     }
 
     try {
-        const entries = JSON.parse(fs.readFileSync(AUDIT_FILE, 'utf8') || '[]');
-        if (!Array.isArray(entries)) throw new Error('Invalid audit data');
-        entries.unshift({
+        appendAuditEntry({
             id: crypto.randomUUID(),
             user: user.trim(),
             action: action.trim(),
@@ -188,7 +209,6 @@ app.post('/api/audit', (req, res) => {
             detail: typeof detail === 'string' ? detail.slice(0, 500) : '',
             date: new Date().toISOString()
         });
-        fs.writeFileSync(AUDIT_FILE, JSON.stringify(entries.slice(0, 500), null, 2));
         res.json({ status: "ok" });
     } catch (err) {
         console.error("Erreur d'écriture de l'historique:", err);

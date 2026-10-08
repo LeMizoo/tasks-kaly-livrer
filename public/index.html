@@ -1346,7 +1346,7 @@ function renderAudit(){
     return entries.length ? entries.map(function(entry){
       return '<article class="activity-entry">' +
         '<span class="who">👤 ' + escapeHtml(entry.user) + '</span>' +
-        '<span class="action">' + escapeHtml(entry.action) + ' <span style="font-size:.7rem;color:var(--muted);">· ' + escapeHtml(entry.taskId) + '</span></span>' +
+        '<span class="action">' + escapeHtml(entry.action) + (entry.taskId==='MESSAGE' ? '' : ' <span style="font-size:.7rem;color:var(--muted);">· ' + escapeHtml(entry.taskId) + '</span>') + '</span>' +
         '<span class="when">' + escapeHtml(fmtDate(entry.date)) + '</span>' +
         (entry.detail ? '<span class="detail">' + escapeHtml(entry.detail) + '</span>' : '') +
       '</article>';
@@ -1544,6 +1544,7 @@ function sendBroadcastMessage(){
     return response.json();
   }).then(function(data){
     showToast('Message diffusé à ' + data.recipientCount + ' utilisateur(s) connecté(s).', 'success');
+    refreshAudit();
   }).catch(function(error){
     console.error('Impossible de diffuser le message:', error);
     showToast('Le message n’a pas pu être envoyé.', 'error');
