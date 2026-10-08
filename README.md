@@ -7,3 +7,5 @@ L’application affiche les 8 actions récentes au-dessus du tableau et jusqu’
 Lorsqu’une tâche est prise en charge, terminée ou réouverte, les utilisateurs connectés voient une notification dans le tableau. Les pages ouvertes vérifient les nouveaux événements toutes les 10 secondes; la notification reste visible 12 secondes.
 
 Le badge « Connectés » affiche les utilisateurs ayant une page ouverte et une session active. Chaque onglet envoie un signal de présence toutes les 30 secondes; les sessions sans signal depuis 90 secondes sont automatiquement retirées. La liste est partagée par l’API `/api/presence`.
+
+Le bouton « Message aux connectés », près du badge, diffuse une notification aux sessions actives au moment de l’envoi. Les messages sont temporaires, limités à 500 caractères et conservés en mémoire pendant 10 minutes; ils ne sont pas ajoutés à l’historique des tâches.

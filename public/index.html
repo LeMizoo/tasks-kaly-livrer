@@ -367,6 +367,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.2rem;">
         <span id="page-visit-summary" style="font-size:.85rem;color:var(--muted);">Plan d'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.</span>
         <span id="visitors-badge" class="visitor-badge">Suivi par : --</span>
+        <button onclick="sendBroadcastMessage()" style="background:var(--card-bg);border:1px solid var(--border);color:var(--primary);cursor:pointer;padding:.35rem .7rem;border-radius:999px;font-size:.75rem;font-weight:700;">📣 Message aux connectés</button>
       </div>
       <div class="access-summary">
         <span>Dernier accès : <strong id="last-access-summary">--</strong></span>
@@ -550,6 +551,7 @@ const SUBTASKS_KEY  = 'kaly-livrer-subtasks-v3';
 const DEADLINES_KEY = 'kaly-livrer-deadlines-v3';
 const SESSION_KEY   = 'kaly-livrer-session-v3';
 const PRESENCE_SESSION_KEY = 'kaly-livrer-presence-session-v1';
+const BROADCAST_SEEN_KEY = 'kaly-livrer-broadcast-seen-v1';
 const PRESENCE_HEARTBEAT_MS = 30000;
 
 let currentUser = null;
@@ -562,6 +564,7 @@ let knownAuditIds = new Set();
 let auditInitialized = false;
 let presenceSessionId = null;
 let presenceHeartbeatTimer = null;
+let broadcastSeenIds = new Set();
 
 /* ---------- DONNÉES STATIQUES DES TÂCHES ---------- */
 const TASKS = [
@@ -597,12 +600,19 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAllRows();
   setupKeyboardShortcuts();
   updateBackToTopVisibility();
+  try{
+    const seenIds = JSON.parse(sessionStorage.getItem(BROADCAST_SEEN_KEY) || '[]');
+    if(Array.isArray(seenIds)) broadcastSeenIds = new Set(seenIds.filter(function(id){ return typeof id==='string'; }));
+  }catch(error){
+    console.error('Impossible de restaurer les messages déjà reçus:', error);
+  }
   tryRestoreSession();
   applyDeadlinesFromData();
   refreshAudit();
   window.setInterval(refreshAudit, 10000);
   window.addEventListener('focus', refreshAudit);
   window.setInterval(refreshPresence, 15000);
+  window.setInterval(refreshBroadcastMessages, 10000);
   window.addEventListener('beforeunload', leavePresence);
 });
 
@@ -1512,8 +1522,51 @@ function sendPresenceHeartbeat(userName){
     return response.json();
   }).then(function(data){
     renderConnectedUsers(data.users);
+    refreshBroadcastMessages();
   }).catch(function(error){
     console.error('Impossible de mettre à jour la présence:', error);
+  });
+}
+
+function sendBroadcastMessage(){
+  if(!currentUser) return showToast('Connectez-vous pour envoyer un message.', 'error');
+  const text = window.prompt('Message à envoyer à tous les utilisateurs connectés (500 caractères maximum) :');
+  if(text === null) return;
+  if(!text.trim()) return showToast('Le message ne peut pas être vide.', 'error');
+  if(text.trim().length > 500) return showToast('Le message dépasse la limite de 500 caractères.', 'error');
+
+  fetch('/api/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user:currentUser,sessionId:getPresenceSessionId(),text:text.trim()})
+  }).then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(data){
+    showToast('Message diffusé à ' + data.recipientCount + ' utilisateur(s) connecté(s).', 'success');
+  }).catch(function(error){
+    console.error('Impossible de diffuser le message:', error);
+    showToast('Le message n’a pas pu être envoyé.', 'error');
+  });
+}
+
+function refreshBroadcastMessages(){
+  if(!presenceSessionId) return;
+  fetch('/api/messages?sessionId=' + encodeURIComponent(presenceSessionId)).then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(data){
+    if(!data || !Array.isArray(data.messages)) throw new Error('Format de messages invalide');
+    data.messages.forEach(function(message){
+      if(!message || typeof message.id !== 'string' || broadcastSeenIds.has(message.id)) return;
+      broadcastSeenIds.add(message.id);
+      if(message.user !== currentUser) showToast('📣 ' + message.user + ' : ' + message.text, 'success', 12000);
+    });
+    if(broadcastSeenIds.size > 500) broadcastSeenIds = new Set(Array.from(broadcastSeenIds).slice(-250));
+    try{ sessionStorage.setItem(BROADCAST_SEEN_KEY, JSON.stringify(Array.from(broadcastSeenIds))); }
+    catch(error){ console.error('Impossible de mémoriser les messages déjà reçus:', error); }
+  }).catch(function(error){
+    console.error('Impossible de charger les messages diffusés:', error);
   });
 }
 

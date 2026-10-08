@@ -14,7 +14,9 @@ const AUDIT_FILE = path.join(DATA_DIR, 'audit.json');
 
 const ALLOWED_USERS = ["Eric", "Miora", "Tovo", "Nancy", "Safidy", "Lioka"];
 const PRESENCE_TIMEOUT_MS = 90 * 1000;
+const BROADCAST_MESSAGE_TTL_MS = 10 * 60 * 1000;
 const activeSessions = new Map();
+const broadcastMessages = [];
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(TASKS_FILE)) fs.writeFileSync(TASKS_FILE, JSON.stringify({}));
@@ -59,6 +61,64 @@ app.delete('/api/presence', (req, res) => {
 
     activeSessions.delete(sessionId);
     res.json({ users: getActiveUsers() });
+});
+
+app.post('/api/messages', (req, res) => {
+    const { user, sessionId, text } = req.body || {};
+    if (
+        typeof user !== 'string' || !ALLOWED_USERS.includes(user) ||
+        typeof sessionId !== 'string' || !/^[a-zA-Z0-9_-]{16,100}$/.test(sessionId) ||
+        typeof text !== 'string' || !text.trim() || text.trim().length > 500
+    ) {
+        return res.status(400).json({ error: "Données du message invalides" });
+    }
+
+    getActiveUsers();
+    const sender = activeSessions.get(sessionId);
+    if (!sender || sender.user !== user) {
+        return res.status(403).json({ error: "Session utilisateur inactive" });
+    }
+
+    const recipients = [...activeSessions.keys()];
+    if (recipients.length === 0) {
+        return res.status(409).json({ error: "Aucun utilisateur connecté" });
+    }
+
+    const now = Date.now();
+    while (broadcastMessages.length && now - broadcastMessages[0].createdAt > BROADCAST_MESSAGE_TTL_MS) {
+        broadcastMessages.shift();
+    }
+    broadcastMessages.push({
+        id: crypto.randomUUID(),
+        user,
+        text: text.trim(),
+        date: new Date(now).toISOString(),
+        createdAt: now,
+        recipients
+    });
+    if (broadcastMessages.length > 500) broadcastMessages.shift();
+
+    const recipientCount = new Set(recipients.map(id => activeSessions.get(id)?.user).filter(Boolean)).size;
+    res.json({ status: "ok", recipientCount });
+});
+
+app.get('/api/messages', (req, res) => {
+    const sessionId = req.query.sessionId;
+    if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9_-]{16,100}$/.test(sessionId)) {
+        return res.status(400).json({ error: "Identifiant de session invalide" });
+    }
+    if (!activeSessions.has(sessionId)) {
+        return res.status(403).json({ error: "Session utilisateur inactive" });
+    }
+
+    const now = Date.now();
+    while (broadcastMessages.length && now - broadcastMessages[0].createdAt > BROADCAST_MESSAGE_TTL_MS) {
+        broadcastMessages.shift();
+    }
+    const messages = broadcastMessages
+        .filter(message => message.recipients.includes(sessionId))
+        .map(({ id, user, text, date }) => ({ id, user, text, date }));
+    res.json({ messages });
 });
 
 app.get('/api/tasks', (req, res) => {
