@@ -352,7 +352,10 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
       <h1 style="margin:.4rem 0 0;color:var(--primary);font-size:1.4rem;">Feuille de Route & Dispatching (22 Tâches) — Audit GEO</h1>
-      <p id="page-visit-summary" style="font-size:.85rem;color:var(--muted);margin:.2rem 0 0;">Plan d'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.</p>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.2rem;">
+        <span id="page-visit-summary" style="font-size:.85rem;color:var(--muted);">Plan d'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.</span>
+        <span id="visitors-badge" style="display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:700;color:#0f766e;background:rgba(16,185,129,.12);padding:.25rem .6rem;border-radius:999px;border:1px solid rgba(16,185,129,.2);">👀 Suivi par : --</span>
+      </div>
       <div style="margin-top:.75rem;">
         <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;">
           <span>Avancement global</span>
@@ -1321,17 +1324,29 @@ function saveVisitors(list){
 
 function updateVisitSummary(userName){
   const el = document.getElementById('page-visit-summary');
-  if(!el) return;
+  const badge = document.getElementById('visitors-badge');
 
   const current = getVisitors();
   if(userName && !current.includes(userName)) current.push(userName);
   const unique = Array.from(new Set(current)).filter(Boolean);
   saveVisitors(unique);
 
-  if(unique.length > 0){
-    el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — suivi par ' + unique.join(', ') + '.';
-  }else{
-    el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.';
+  if(el){
+    if(unique.length > 0){
+      el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — suivi par ' + unique.join(', ') + '.';
+    }else{
+      el.textContent = 'Plan d\'intervention et suivi centralisé pour Kaly Livrer — prérempli par Tovo.';
+    }
+  }
+
+  if(badge){
+    if(unique.length > 0){
+      badge.textContent = '👀 Suivi par : ' + unique.join(', ');
+      badge.style.display = 'inline-flex';
+    }else{
+      badge.textContent = '👀 Suivi par : --';
+      badge.style.display = 'inline-flex';
+    }
   }
 }
 
