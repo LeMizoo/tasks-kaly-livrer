@@ -177,7 +177,10 @@ tbody tr:last-child td{border-bottom:none;}
 .template-block{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;border-left:4px solid #0284c7;border-radius:var(--radius-sm);padding:.9rem 1rem;margin-top:.6rem;font-size:.82rem;line-height:1.55;color:#0c4a6e;}
 .template-block h6{margin:0 0 .5rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#0369a1;font-weight:800;}
 .template-block pre{background:#fff;border:1px solid #bae6fd;padding:.75rem;border-radius:6px;margin:.5rem 0 0;font-family:'SF Mono',Consolas,monospace;font-size:.75rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;color:#0f172a;max-height:280px;overflow:auto;}
+.template-block textarea{width:100%;min-height:220px;box-sizing:border-box;background:#fff;border:1px solid #bae6fd;padding:.75rem;border-radius:6px;margin:.5rem 0 0;font-family:'SF Mono',Consolas,monospace;font-size:.75rem;line-height:1.6;resize:vertical;}
 .template-block .tpl-actions{display:flex;gap:.4rem;margin-top:.5rem;flex-wrap:wrap;}
+.expand-btn.template-modified{color:#a16207!important;background:#fef3c7!important;}
+.template-save-status{font-size:.72rem;color:var(--muted);align-self:center;}
 .copy-btn{display:inline-flex;align-items:center;gap:.3rem;background:rgba(37,99,235,.08);color:#2563eb;border:none;font-weight:700;font-size:.72rem;padding:.35rem .7rem;border-radius:6px;cursor:pointer;margin-left:.3rem;transition:all .15s;}
 .copy-btn:hover{background:#2563eb;color:#fff;}
 .copy-btn.copied{background:var(--success);color:#fff;}
@@ -578,6 +581,14 @@ let taskSavePending = 0;
 let taskSaveQueue = Promise.resolve();
 let taskDirtyIds = new Set();
 let taskSyncWarningShown = false;
+const TEMPLATE_OVERRIDES = {};
+const TEMPLATE_DIRTY = new Set();
+const TEMPLATE_SAVING = new Set();
+let templatesSyncInProgress = false;
+let templatesSyncWarningShown = false;
+let templateSaveWarningShown = false;
+let templateCacheLoaded = false;
+const TEMPLATE_SAVE_TIMERS = {};
 
 /* ---------- DONNÉES STATIQUES DES TÂCHES ---------- */
 const TASKS = [
@@ -611,6 +622,9 @@ document.addEventListener('DOMContentLoaded', () => {
   loadMeta();
   tryFetchSystemUsers();
   renderAllRows();
+  refreshTemplates();
+  window.setInterval(refreshTemplates, 10000);
+  window.addEventListener('focus', refreshTemplates);
   refreshSharedMeta();
   window.setInterval(refreshSharedMeta, 10000);
   window.addEventListener('focus', refreshSharedMeta);
@@ -854,10 +868,12 @@ function renderRow(t){
     '<div id="tpl-' + t.id + '" class="expand-content" style="background:transparent;padding:0;">' +
       '<div class="template-block">' +
         '<h6>📝 Modèle prêt à l\'emploi</h6>' +
-        '<pre>' + escapeHtml(tpl) + '</pre>' +
+        '<textarea id="tpl-editor-' + t.id + '" aria-label="Modifier le modèle ' + t.id + '" oninput="handleTemplateEdit(\'' + t.id + '\',this.value)">' + escapeHtml(tpl) + '</textarea>' +
         '<div class="tpl-actions">' +
           '<button class="copy-btn" onclick="copyTemplate(\'' + t.id + '\',this)">📋 Copier</button>' +
           '<button class="copy-btn" onclick="downloadTemplate(\'' + t.id + '\')">💾 Télécharger</button>' +
+          '<button class="copy-btn" onclick="saveTemplate(\'' + t.id + '\',true)">💾 Enregistrer le modèle</button>' +
+          '<span id="tpl-status-' + t.id + '" class="template-save-status"></span>' +
         '</div>' +
       '</div>' +
     '</div>'
@@ -873,7 +889,7 @@ function renderRow(t){
     dl,
     '<div class="task-meta"><span class="chip">⏱ ' + t.time + '</span><span class="chip">📁 ' + t.section + '</span></div><br>',
     '<button class="expand-btn" onclick="toggleExpand(\'exp-' + t.id + '\')">📋 Détail technique</button>',
-    tpl ? '<button class="expand-btn" onclick="toggleExpand(\'tpl-' + t.id + '\')" style="background:rgba(37,99,235,.1);color:#2563eb;">📝 Modèle prêt à copier</button>' : '',
+    tpl ? '<button id="tpl-toggle-' + t.id + '" class="expand-btn' + (isTemplateModified(t.id) ? ' template-modified' : '') + '" onclick="toggleExpand(\'tpl-' + t.id + '\')">📝 Modèle prêt à copier' + (isTemplateModified(t.id) ? ' · modifié' : '') + '</button>' : '',
     '<button class="expand-btn" onclick="toggleExpand(\'sub-' + t.id + '\')">✅ Sous-tâches</button>',
     '<button class="expand-btn" onclick="toggleExpand(\'cmt-' + t.id + '\')">💬 Commentaires</button>',
     '<div id="exp-' + t.id + '" class="expand-content">' + escapeHtml(t.detail) + '</div>',
@@ -1027,6 +1043,7 @@ function refreshData(){
   showToast('🔄 Actualisation…', 'success');
   loadMeta();
   renderAllRows();
+  refreshTemplates();
   refreshSharedMeta();
   refreshComments();
   refreshAudit();
@@ -2439,7 +2456,161 @@ Commandez maintenant sur kaly-livrer.com`,
 - Support client : +261 38 68 133 00`
 };
 
-function getTemplate(taskId){ return TASK_TEMPLATES[taskId] || ''; }
+function getTemplate(taskId){
+  return Object.prototype.hasOwnProperty.call(TEMPLATE_OVERRIDES, taskId) ?
+    TEMPLATE_OVERRIDES[taskId] : (TASK_TEMPLATES[taskId] || '');
+}
+
+function isTemplateModified(taskId){
+  return getTemplate(taskId) !== (TASK_TEMPLATES[taskId] || '');
+}
+
+function updateTemplateButton(taskId){
+  const button = document.getElementById('tpl-toggle-' + taskId);
+  if(!button) return;
+  const modified = isTemplateModified(taskId);
+  button.classList.toggle('template-modified', modified);
+  button.textContent = '📝 Modèle prêt à copier' + (modified ? ' · modifié' : '');
+}
+
+function saveTemplateCache(){
+  try{
+    localStorage.setItem('kaly-livrer-template-overrides-v1', JSON.stringify(TEMPLATE_OVERRIDES));
+  }catch(error){
+    console.error('Impossible de sauvegarder le cache local des modèles:', error);
+  }
+}
+
+function loadTemplateCache(){
+  if(templateCacheLoaded) return;
+  templateCacheLoaded = true;
+  try{
+    const cached = JSON.parse(localStorage.getItem('kaly-livrer-template-overrides-v1') || '{}');
+    if(!cached || typeof cached !== 'object' || Array.isArray(cached)) return;
+    Object.keys(cached).forEach(function(taskId){
+      if(typeof TASK_TEMPLATES[taskId] === 'string' && typeof cached[taskId] === 'string'){
+        TEMPLATE_OVERRIDES[taskId] = cached[taskId];
+      }
+    });
+  }catch(error){
+    console.error('Cache local des modèles invalide:', error);
+  }
+}
+
+function refreshTemplates(){
+  if(templatesSyncInProgress) return Promise.resolve();
+  templatesSyncInProgress = true;
+  loadTemplateCache();
+
+  return fetch('/api/templates').then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(data){
+    if(!data || !data.templates || typeof data.templates !== 'object' || Array.isArray(data.templates)){
+      throw new Error('Format des modèles invalide');
+    }
+    const remote = data.templates;
+    const localOnly = [];
+    Object.keys(TASK_TEMPLATES).forEach(function(taskId){
+      if(TEMPLATE_DIRTY.has(taskId)) return;
+      if(Object.prototype.hasOwnProperty.call(remote, taskId) && typeof remote[taskId] === 'string'){
+        TEMPLATE_OVERRIDES[taskId] = remote[taskId];
+      }else if(Object.prototype.hasOwnProperty.call(TEMPLATE_OVERRIDES, taskId)){
+        localOnly.push(taskId);
+      }else{
+        delete TEMPLATE_OVERRIDES[taskId];
+      }
+
+      const editor = document.getElementById('tpl-editor-' + taskId);
+      if(editor) editor.value = getTemplate(taskId);
+      const copyButton = document.querySelector('#tpl-' + taskId + ' .tpl-actions .copy-btn');
+      if(copyButton) copyButton.disabled = !getTemplate(taskId);
+      updateTemplateButton(taskId);
+    });
+    saveTemplateCache();
+    templatesSyncWarningShown = false;
+    localOnly.forEach(saveTemplate);
+    Array.from(TEMPLATE_DIRTY).forEach(function(taskId){
+      if(!TEMPLATE_SAVING.has(taskId) && localOnly.indexOf(taskId) === -1) saveTemplate(taskId);
+    });
+  }).catch(function(error){
+    console.error('Impossible de charger les modèles partagés:', error);
+    if(!templatesSyncWarningShown){
+      templatesSyncWarningShown = true;
+      showToast('Les modèles partagés sont indisponibles. Les modifications locales sont conservées.', 'error');
+    }
+  }).finally(function(){
+    templatesSyncInProgress = false;
+  });
+}
+
+function handleTemplateEdit(taskId, content){
+  TEMPLATE_OVERRIDES[taskId] = content;
+  TEMPLATE_DIRTY.add(taskId);
+  saveTemplateCache();
+  updateTemplateButton(taskId);
+  const status = document.getElementById('tpl-status-' + taskId);
+  if(status) status.textContent = 'Modification en attente de sauvegarde…';
+  clearTimeout(TEMPLATE_SAVE_TIMERS[taskId]);
+  TEMPLATE_SAVE_TIMERS[taskId] = setTimeout(function(){ saveTemplate(taskId); }, 800);
+}
+
+function saveTemplate(taskId, showNotification){
+  clearTimeout(TEMPLATE_SAVE_TIMERS[taskId]);
+  if(TEMPLATE_SAVING.has(taskId)) return Promise.resolve();
+  const content = TEMPLATE_OVERRIDES[taskId];
+  if(typeof content !== 'string' || !content.trim()){
+    showToast('Le modèle ne peut pas être vide.', 'error');
+    return Promise.resolve();
+  }
+  TEMPLATE_DIRTY.add(taskId);
+  TEMPLATE_SAVING.add(taskId);
+  let saveAgain = false;
+  const status = document.getElementById('tpl-status-' + taskId);
+  if(status) status.textContent = 'Enregistrement…';
+
+  return fetch('/api/templates', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({taskId:taskId,content:content})
+  }).then(function(response){
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function(data){
+    if(!data || data.taskId !== taskId || data.content !== content){
+      throw new Error('Réponse de sauvegarde du modèle invalide');
+    }
+    if(TEMPLATE_OVERRIDES[taskId] === content){
+      TEMPLATE_OVERRIDES[taskId] = data.content;
+      TEMPLATE_DIRTY.delete(taskId);
+    }else saveAgain = true;
+    templatesSyncWarningShown = false;
+    saveTemplateCache();
+    updateTemplateButton(taskId);
+    const editor = document.getElementById('tpl-editor-' + taskId);
+    if(TEMPLATE_OVERRIDES[taskId] === data.content){
+      if(editor && editor.value !== data.content) editor.value = data.content;
+      if(status) status.textContent = '✓ Modèle partagé et sauvegardé';
+      templateSaveWarningShown = false;
+      if(showNotification) showToast('Modèle enregistré et partagé.', 'success');
+    }else if(status){
+      status.textContent = 'Nouvelle modification en attente…';
+    }
+  }).catch(function(error){
+    console.error('Impossible de sauvegarder le modèle partagé:', error);
+    if(status) status.textContent = '⚠ Sauvegarde impossible — réessayez';
+    if(showNotification || !templateSaveWarningShown){
+      templateSaveWarningShown = true;
+      showToast('Le modèle reste dans ce navigateur : sauvegarde serveur impossible.', 'error');
+    }
+  }).finally(function(){
+    TEMPLATE_SAVING.delete(taskId);
+    if(saveAgain && TEMPLATE_DIRTY.has(taskId)){
+      clearTimeout(TEMPLATE_SAVE_TIMERS[taskId]);
+      TEMPLATE_SAVE_TIMERS[taskId] = setTimeout(function(){ saveTemplate(taskId); }, 100);
+    }
+  });
+}
 
 function getExtForTask(taskId){
   const map = {

@@ -13,6 +13,7 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.json');
 const COMMENTS_FILE = path.join(DATA_DIR, 'comments.json');
 const META_FILE = path.join(DATA_DIR, 'meta.json');
+const TEMPLATES_FILE = path.join(DATA_DIR, 'templates.json');
 
 const ALLOWED_USERS = ["Eric", "Miora", "Tovo", "Nancy", "Safidy", "Lioka"];
 const PRESENCE_TIMEOUT_MS = 90 * 1000;
@@ -26,6 +27,7 @@ if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, JSON.stringify({}))
 if (!fs.existsSync(AUDIT_FILE)) fs.writeFileSync(AUDIT_FILE, JSON.stringify([]));
 if (!fs.existsSync(COMMENTS_FILE)) fs.writeFileSync(COMMENTS_FILE, JSON.stringify({}));
 if (!fs.existsSync(META_FILE)) fs.writeFileSync(META_FILE, JSON.stringify({ subtasks: {}, deadlines: {} }));
+if (!fs.existsSync(TEMPLATES_FILE)) fs.writeFileSync(TEMPLATES_FILE, JSON.stringify({}));
 
 app.use(cors());
 app.use(express.json());
@@ -291,6 +293,42 @@ app.post('/api/comments', (req, res) => {
     } catch (err) {
         console.error('Erreur d’écriture des commentaires:', err);
         res.status(500).json({ error: "Erreur d'écriture des commentaires" });
+    }
+});
+
+app.get('/api/templates', (req, res) => {
+    try {
+        const templates = JSON.parse(fs.readFileSync(TEMPLATES_FILE, 'utf8') || '{}');
+        if (!templates || Array.isArray(templates) || typeof templates !== 'object') {
+            throw new Error('Invalid templates data');
+        }
+        res.json({ templates });
+    } catch (err) {
+        console.error('Erreur de lecture des modèles:', err);
+        res.status(500).json({ error: "Erreur de lecture des modèles" });
+    }
+});
+
+app.post('/api/templates', (req, res) => {
+    const { taskId, content } = req.body || {};
+    if (
+        typeof taskId !== 'string' || !/^GEO-\d{3}$/.test(taskId) ||
+        typeof content !== 'string' || !content.trim() || content.length > 50000
+    ) {
+        return res.status(400).json({ error: "Données du modèle invalides" });
+    }
+
+    try {
+        const templates = JSON.parse(fs.readFileSync(TEMPLATES_FILE, 'utf8') || '{}');
+        if (!templates || Array.isArray(templates) || typeof templates !== 'object') {
+            throw new Error('Invalid templates data');
+        }
+        templates[taskId] = content;
+        fs.writeFileSync(TEMPLATES_FILE, JSON.stringify(templates, null, 2));
+        res.json({ status: "ok", taskId, content });
+    } catch (err) {
+        console.error('Erreur d’écriture des modèles:', err);
+        res.status(500).json({ error: "Erreur d'écriture des modèles" });
     }
 });
 
