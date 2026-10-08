@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const cors = require('cors');
 
 const app = express();
@@ -41,6 +42,14 @@ app.get('/api/audit', (req, res) => {
     try {
         const entries = JSON.parse(fs.readFileSync(AUDIT_FILE, 'utf8') || '[]');
         if (!Array.isArray(entries)) throw new Error('Invalid audit data');
+        let migrated = false;
+        entries.forEach(entry => {
+            if (entry && typeof entry === 'object' && !entry.id) {
+                entry.id = crypto.randomUUID();
+                migrated = true;
+            }
+        });
+        if (migrated) fs.writeFileSync(AUDIT_FILE, JSON.stringify(entries.slice(0, 500), null, 2));
         const recentAccess = entries.find(entry => entry && entry.taskId === 'ACCESS') || null;
         const now = Date.now();
         const recentLogins24h = entries.filter(entry => {
@@ -74,6 +83,7 @@ app.post('/api/audit', (req, res) => {
         const entries = JSON.parse(fs.readFileSync(AUDIT_FILE, 'utf8') || '[]');
         if (!Array.isArray(entries)) throw new Error('Invalid audit data');
         entries.unshift({
+            id: crypto.randomUUID(),
             user: user.trim(),
             action: action.trim(),
             taskId: taskId.trim(),
