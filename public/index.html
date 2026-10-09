@@ -229,7 +229,7 @@ tbody tr:last-child td{border-bottom:none;}
 .disabled{opacity:.2;pointer-events:none;}
 
 #toast-container{position:fixed;bottom:1.25rem;right:1.25rem;z-index:2000;display:flex;flex-direction:column;gap:.6rem;max-width:340px;}
-#auth-toggle{position:fixed;top:1rem;right:1rem;z-index:1100;background:var(--primary);color:var(--card-bg);border:0;border-radius:999px;padding:.7rem 1rem;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;box-shadow:var(--shadow-md);}
+#auth-toggle{position:fixed;top:1rem;right:1rem;z-index:1100;background:var(--primary);color:var(--card-bg);border:0;border-radius:999px;width:44px;height:44px;padding:0;font-family:inherit;font-size:1.35rem;font-weight:700;cursor:pointer;box-shadow:var(--shadow-md);display:inline-flex;align-items:center;justify-content:center;}
 #auth-toggle:hover{filter:brightness(1.15);}
 .modal-actions{display:flex;gap:.6rem;margin-top:.75rem;}
 .modal-actions button{flex:1;}
@@ -328,7 +328,7 @@ tbody tr:last-child td{border-bottom:none;}
 </head>
 <body>
 
-<button id="auth-toggle" type="button" onclick="toggleAuthentication()">Se connecter</button>
+<button id="auth-toggle" type="button" onclick="toggleAuthentication()" aria-label="Se connecter" title="Se connecter">⏻</button>
 
 <div id="auth-modal" class="modal-backdrop hidden">
   <div class="modal">
@@ -538,6 +538,7 @@ const PRESENCE_HEARTBEAT_MS = 30000;
 
 let currentUser = null;
 let systemUsers = {};
+let systemUsersLoaded = false;
 let tasksMeta = { subtasks:{}, comments:{}, deadlines:{} };
 let auditEntries = [];
 let auditSummary = null;
@@ -585,7 +586,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   loadLocalUsers();
   loadMeta();
-  tryFetchSystemUsers();
+  try{
+    await tryFetchSystemUsers();
+  }catch(error){
+    console.error('Impossible de vérifier les profils utilisateur:', error);
+  }
   renderAllRows();
   refreshAddedTasks();
   window.setInterval(refreshAddedTasks, 10000);
@@ -610,7 +615,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }catch(error){
     console.error('Impossible de restaurer les messages déjà reçus:', error);
   }
-  tryRestoreSession();
+  if(!tryRestoreSession()){
+    openAuthModal();
+    if(!systemUsersLoaded){
+      showAuthError('Impossible de vérifier les profils utilisateur. Rechargez la page pour réessayer.');
+    }
+  }
   applyDeadlinesFromData();
   refreshAudit();
   window.setInterval(refreshAudit, 10000);
@@ -739,17 +749,16 @@ async function refreshAddedTasks(){
   }
 }
 
-function tryFetchSystemUsers(){
-  fetch('/api/users')
-    .then(res => { if(!res.ok) throw new Error(); return res.json(); })
-    .then(data => {
-      if(!data || !data.users || typeof data.users !== 'object' || Array.isArray(data.users)){
-        throw new Error('Format des profils utilisateur invalide');
-      }
-      systemUsers = data.users;
-      saveLocalUsers();
-    })
-    .catch(() => {});
+async function tryFetchSystemUsers(){
+  const response = await fetch('/api/users');
+  if(!response.ok) throw new Error('HTTP ' + response.status);
+  const data = await response.json();
+  if(!data || !data.users || typeof data.users !== 'object' || Array.isArray(data.users)){
+    throw new Error('Format des profils utilisateur invalide');
+  }
+  systemUsers = data.users;
+  systemUsersLoaded = true;
+  saveLocalUsers();
 }
 
 function loadLocalUsers(){
@@ -1034,6 +1043,11 @@ function checkUserAuthStatus(){
   document.getElementById('pin-input').value = '';
   document.getElementById('pin-confirm-input').value = '';
   if(!user) return;
+  if(!systemUsersLoaded){
+    pinSection.classList.add('hidden');
+    showAuthError('Impossible de vérifier les profils utilisateur. Rechargez la page pour réessayer.');
+    return;
+  }
   pinSection.classList.remove('hidden');
 
   if(systemUsers[user]){
@@ -1051,9 +1065,10 @@ function checkUserAuthStatus(){
 function setAuthToggleState(){
   const button = document.getElementById('auth-toggle');
   if(!button) return;
-  button.textContent = currentUser ? 'Se déconnecter' : 'Se connecter';
+  button.textContent = '⏻';
   button.setAttribute('aria-label', currentUser ? 'Se déconnecter de la session' : 'Se connecter');
   button.title = currentUser ? 'Session de ' + currentUser : 'Ouvrir une session';
+  button.setAttribute('aria-pressed', currentUser ? 'true' : 'false');
   if(!currentUser) document.getElementById('current-session-user').textContent = 'Hors connexion';
   const addTaskButton = document.getElementById('add-task-button');
   if(addTaskButton) addTaskButton.classList.toggle('hidden', !APP_CONFIG || currentUser !== APP_CONFIG.taskCreator);
@@ -1064,6 +1079,10 @@ function toggleAuthentication(){
     logout();
     return;
   }
+  openAuthModal();
+}
+
+function openAuthModal(){
   document.getElementById('auth-error').classList.add('hidden');
   document.getElementById('auth-modal').classList.remove('hidden');
   setTimeout(function(){ document.getElementById('auth-user-select').focus(); }, 0);
@@ -1074,6 +1093,9 @@ function closeAuthModal(){
 }
 
 function handleAuthSubmit(){
+  if(!systemUsersLoaded){
+    return showAuthError('Impossible de vérifier les profils utilisateur. Rechargez la page pour réessayer.');
+  }
   const user = document.getElementById('auth-user-select').value;
   const pin = document.getElementById('pin-input').value;
   const pinConfirm = document.getElementById('pin-confirm-input').value;
@@ -1089,6 +1111,12 @@ function handleAuthSubmit(){
       body:JSON.stringify({user:user,pin:pin})
     }).then(function(response){
       return response.json().then(function(data){
+        if(response.status === 409){
+          return tryFetchSystemUsers().then(function(){
+            checkUserAuthStatus();
+            throw new Error('Ce profil existe déjà. Entrez le code PIN que vous avez créé précédemment.');
+          });
+        }
         if(!response.ok) throw new Error(data.error || 'HTTP ' + response.status);
         systemUsers[user] = true;
         saveLocalUsers();
