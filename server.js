@@ -16,6 +16,8 @@ const COMMENTS_FILE = path.join(DATA_DIR, 'comments.json');
 const META_FILE = path.join(DATA_DIR, 'meta.json');
 const TEMPLATES_FILE = path.join(DATA_DIR, 'templates.json');
 const ADDED_TASKS_FILE = path.join(DATA_DIR, 'added-tasks.json');
+const PUBLICATION_FILE = path.join(DATA_DIR, 'publication.json');
+const PUBLICATION_ARCHIVES_FILE = path.join(DATA_DIR, 'publication-archives.json');
 
 function loadProjectConfig(filePath) {
     let config;
@@ -44,8 +46,16 @@ function loadProjectConfig(filePath) {
     if (config.app.publicationDate !== undefined &&
         (typeof config.app.publicationDate !== 'string' ||
             !/^\d{4}-\d{2}-\d{2}$/.test(config.app.publicationDate) ||
-            Number.isNaN(Date.parse(config.app.publicationDate)))) {
+            Number.isNaN(Date.parse(`${config.app.publicationDate}T00:00:00.000Z`)) ||
+            new Date(`${config.app.publicationDate}T00:00:00.000Z`).toISOString().slice(0, 10) !== config.app.publicationDate)) {
         fail('app.publicationDate doit respecter le format AAAA-MM-JJ.');
+    }
+    if (config.app.deadlineDate !== undefined &&
+        (typeof config.app.deadlineDate !== 'string' ||
+            !/^\d{4}-\d{2}-\d{2}$/.test(config.app.deadlineDate) ||
+            Number.isNaN(Date.parse(`${config.app.deadlineDate}T00:00:00.000Z`)) ||
+            new Date(`${config.app.deadlineDate}T00:00:00.000Z`).toISOString().slice(0, 10) !== config.app.deadlineDate)) {
+        fail('app.deadlineDate doit respecter le format AAAA-MM-JJ.');
     }
     if (config.app.theme && (
         typeof config.app.theme !== 'object' || Array.isArray(config.app.theme) ||
@@ -125,6 +135,31 @@ if (!fs.existsSync(COMMENTS_FILE)) fs.writeFileSync(COMMENTS_FILE, JSON.stringif
 if (!fs.existsSync(META_FILE)) fs.writeFileSync(META_FILE, JSON.stringify({ subtasks: {}, deadlines: {} }));
 if (!fs.existsSync(TEMPLATES_FILE)) fs.writeFileSync(TEMPLATES_FILE, JSON.stringify({}));
 if (!fs.existsSync(ADDED_TASKS_FILE)) fs.writeFileSync(ADDED_TASKS_FILE, JSON.stringify([]));
+if (!fs.existsSync(PUBLICATION_FILE)) {
+    fs.writeFileSync(PUBLICATION_FILE, JSON.stringify({
+        name: PROJECT_CONFIG.app.name,
+        title: PROJECT_CONFIG.app.title,
+        description: PROJECT_CONFIG.app.description,
+        publicationDate: PROJECT_CONFIG.app.publicationDate || '',
+        deadlineDate: PROJECT_CONFIG.app.deadlineDate || ''
+    }, null, 2));
+}
+if (!fs.existsSync(PUBLICATION_ARCHIVES_FILE)) {
+    fs.writeFileSync(PUBLICATION_ARCHIVES_FILE, JSON.stringify([]));
+}
+
+const publicationState = JSON.parse(fs.readFileSync(PUBLICATION_FILE, 'utf8'));
+const isValidDate = value => typeof value === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)) &&
+    new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value;
+if (!publicationState || typeof publicationState !== 'object' || Array.isArray(publicationState) ||
+    typeof publicationState.name !== 'string' || typeof publicationState.title !== 'string' ||
+    typeof publicationState.description !== 'string' ||
+    (publicationState.publicationDate !== '' && !isValidDate(publicationState.publicationDate)) ||
+    (publicationState.deadlineDate !== '' && !isValidDate(publicationState.deadlineDate))) {
+    throw new Error(`Données de publication invalides dans ${PUBLICATION_FILE}`);
+}
 
 const addedTasks = JSON.parse(fs.readFileSync(ADDED_TASKS_FILE, 'utf8') || '[]');
 if (!Array.isArray(addedTasks) || addedTasks.some(task =>
@@ -149,7 +184,11 @@ app.get('/api/health', (req, res) => {
 });
 
 app.get('/api/config', (req, res) => {
-    res.json({ ...PROJECT_CONFIG, tasks: PROJECT_CONFIG.tasks.concat(addedTasks) });
+    res.json({
+        ...PROJECT_CONFIG,
+        app: { ...PROJECT_CONFIG.app, ...publicationState },
+        tasks: PROJECT_CONFIG.tasks.concat(addedTasks)
+    });
 });
 
 function getActiveUsers() {
@@ -356,6 +395,68 @@ app.post('/api/tasks/create', (req, res) => {
     } catch (err) {
         console.error("Erreur d'ajout de tâche:", err);
         res.status(500).json({ error: "Impossible d'enregistrer la tâche." });
+    }
+});
+
+app.post('/api/publication/reset', (req, res) => {
+    const { user, pin, name, title, description, publicationDate, deadlineDate } = req.body || {};
+    if (!ALLOWED_USERS.includes('Tovo') || user !== 'Tovo' ||
+        typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
+        return res.status(403).json({ error: "Seul Tovo peut créer une publication." });
+    }
+
+    try {
+        const users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8') || '{}');
+        if (!users || users[user] !== pin) {
+            return res.status(403).json({ error: "Code PIN incorrect." });
+        }
+
+        if (typeof name !== 'string' || !name.trim() || name.trim().length > 100 ||
+            typeof title !== 'string' || !title.trim() || title.trim().length > 200 ||
+            typeof description !== 'string' || !description.trim() || description.trim().length > 500 ||
+            !isValidDate(publicationDate) || !isValidDate(deadlineDate) ||
+            deadlineDate < publicationDate) {
+            return res.status(400).json({ error: "Données de publication invalides." });
+        }
+
+        if (!publicationState.deadlineDate ||
+            new Date(`${publicationState.deadlineDate}T23:59:59.999`).getTime() > Date.now()) {
+            return res.status(409).json({ error: "La deadline actuelle n’est pas encore expirée." });
+        }
+
+        const tasks = JSON.parse(fs.readFileSync(TASKS_FILE, 'utf8') || '{}');
+        if (!tasks || Array.isArray(tasks) || typeof tasks !== 'object') {
+            throw new Error('Invalid task data');
+        }
+        const archives = JSON.parse(fs.readFileSync(PUBLICATION_ARCHIVES_FILE, 'utf8') || '[]');
+        if (!Array.isArray(archives)) {
+            throw new Error('Invalid publication archive data');
+        }
+        const previousTaskStates = JSON.parse(JSON.stringify(tasks));
+        archives.push({
+            createdAt: new Date().toISOString(),
+            publication: { ...publicationState },
+            taskStates: previousTaskStates
+        });
+        for (const taskId of ALLOWED_TASK_IDS) {
+            tasks[taskId] = { checked: false, assignee: '' };
+        }
+
+        const nextPublication = {
+            name: name.trim(),
+            title: title.trim(),
+            description: description.trim(),
+            publicationDate,
+            deadlineDate
+        };
+        fs.writeFileSync(PUBLICATION_ARCHIVES_FILE, JSON.stringify(archives, null, 2));
+        fs.writeFileSync(TASKS_FILE, JSON.stringify(tasks, null, 2));
+        fs.writeFileSync(PUBLICATION_FILE, JSON.stringify(nextPublication, null, 2));
+        Object.assign(publicationState, nextPublication);
+        res.json({ status: "ok", app: { ...PROJECT_CONFIG.app, ...publicationState } });
+    } catch (err) {
+        console.error("Erreur de création de publication:", err);
+        res.status(500).json({ error: "Impossible d'enregistrer la nouvelle publication." });
     }
 });
 

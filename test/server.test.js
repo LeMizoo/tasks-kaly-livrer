@@ -218,3 +218,127 @@ test('serves and validates IDs from a separate project configuration', async () 
         }
     }
 });
+
+test('creates a new publication after the deadline and resets only task progress', async () => {
+    const projectConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'app.json'), 'utf8'));
+    projectConfig.app.publicationDate = '2020-01-01';
+    projectConfig.app.deadlineDate = '2020-01-02';
+    const projectConfigPath = path.join(dataDir, 'expired-publication.json');
+    const projectDataDir = path.join(dataDir, 'expired-publication-data');
+    fs.mkdirSync(projectDataDir);
+    fs.writeFileSync(projectConfigPath, JSON.stringify(projectConfig));
+
+    const firstTaskId = projectConfig.tasks[0].id;
+    const savedSubtask = [{ id: '123e4567-e89b-42d3-a456-426614174000', text: 'Conserver', done: true }];
+    const savedComment = [{ id: 'comment-1', text: 'Conserver aussi' }];
+    fs.writeFileSync(path.join(projectDataDir, 'tasks.json'), JSON.stringify({
+        [firstTaskId]: { checked: true, assignee: 'Tovo' }
+    }));
+    fs.writeFileSync(path.join(projectDataDir, 'meta.json'), JSON.stringify({
+        subtasks: { [firstTaskId]: savedSubtask },
+        deadlines: { [firstTaskId]: '2026-10-20' }
+    }));
+    fs.writeFileSync(path.join(projectDataDir, 'comments.json'), JSON.stringify({
+        [firstTaskId]: savedComment
+    }));
+
+    const portProbe = net.createServer();
+    await new Promise((resolve, reject) => {
+        portProbe.once('error', reject);
+        portProbe.listen(0, '127.0.0.1', resolve);
+    });
+    const port = portProbe.address().port;
+    await new Promise((resolve, reject) => portProbe.close(error => error ? reject(error) : resolve()));
+
+    const child = spawn(process.execPath, ['server.js'], {
+        cwd: path.join(__dirname, '..'),
+        env: {
+            ...process.env,
+            APP_CONFIG_FILE: projectConfigPath,
+            DATA_DIR: projectDataDir,
+            PORT: String(port)
+        },
+        stdio: ['ignore', 'ignore', 'pipe']
+    });
+    let stderr = '';
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', chunk => { stderr += chunk; });
+
+    try {
+        let health;
+        for (let attempt = 0; attempt < 60; attempt++) {
+            if (child.exitCode !== null) throw new Error(`Publication server exited: ${stderr}`);
+            try {
+                health = await fetch(`http://127.0.0.1:${port}/api/health`);
+                if (health.ok) break;
+            } catch {}
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        assert.equal(health && health.status, 200, `Publication server did not start: ${stderr}`);
+
+        const setup = await fetch(`http://127.0.0.1:${port}/api/auth/setup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: 'Tovo', pin: '1234' })
+        });
+        assert.equal(setup.status, 200);
+
+        const wrongPin = await fetch(`http://127.0.0.1:${port}/api/publication/reset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user: 'Tovo', pin: '0000', name: 'Nouveau projet', title: 'Nouvelle feuille',
+                description: 'Nouvelle publication', publicationDate: '2026-10-17', deadlineDate: '2026-10-24'
+            })
+        });
+        assert.equal(wrongPin.status, 403);
+
+        const otherUser = await fetch(`http://127.0.0.1:${port}/api/publication/reset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user: 'Nancy', pin: '1234', name: 'Nouveau projet', title: 'Nouvelle feuille',
+                description: 'Nouvelle publication', publicationDate: '2026-10-17', deadlineDate: '2026-10-24'
+            })
+        });
+        assert.equal(otherUser.status, 403);
+
+        const reset = await fetch(`http://127.0.0.1:${port}/api/publication/reset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user: 'Tovo', pin: '1234', name: 'Nouveau projet', title: 'Nouvelle feuille',
+                description: 'Nouvelle publication', publicationDate: '2026-10-17', deadlineDate: '2026-10-24'
+            })
+        });
+        assert.equal(reset.status, 200);
+
+        const config = await (await fetch(`http://127.0.0.1:${port}/api/config`)).json();
+        assert.equal(config.app.name, 'Nouveau projet');
+        assert.equal(config.app.title, 'Nouvelle feuille');
+        assert.equal(config.app.publicationDate, '2026-10-17');
+        assert.equal(config.app.deadlineDate, '2026-10-24');
+
+        const tasks = await (await fetch(`http://127.0.0.1:${port}/api/tasks`)).json();
+        assert.deepEqual(tasks[firstTaskId], { checked: false, assignee: '' });
+        const archives = JSON.parse(fs.readFileSync(path.join(projectDataDir, 'publication-archives.json'), 'utf8'));
+        assert.equal(archives.length, 1);
+        assert.deepEqual(archives[0].taskStates[firstTaskId], { checked: true, assignee: 'Tovo' });
+        assert.deepEqual((await (await fetch(`http://127.0.0.1:${port}/api/meta`)).json()).subtasks[firstTaskId], savedSubtask);
+        assert.deepEqual((await (await fetch(`http://127.0.0.1:${port}/api/comments`)).json()).comments[firstTaskId], savedComment);
+    } finally {
+        child.kill();
+        if (child.exitCode === null && child.signalCode === null) {
+            await new Promise(resolve => {
+                const timeout = setTimeout(resolve, 2000);
+                child.once('exit', () => {
+                    clearTimeout(timeout);
+                    resolve();
+                });
+            });
+        }
+        if (child.exitCode === null && child.signalCode === null) {
+            throw new Error('Publication server did not stop after SIGTERM.');
+        }
+    }
+});

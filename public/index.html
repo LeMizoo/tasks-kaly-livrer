@@ -102,6 +102,12 @@ header::before{
 @keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
 .progress-bg{background:var(--border);height:10px;border-radius:6px;overflow:hidden;margin-top:.6rem;box-shadow:inset 0 1px 2px rgba(0,0,0,.05);}
 .progress-fill{background:linear-gradient(90deg,var(--accent),var(--accent-2));height:100%;width:0%;transition:width .6s cubic-bezier(.16,1,.3,1);border-radius:6px;box-shadow:0 0 12px var(--accent-glow);}
+.progress-legend{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.35rem;font-size:.68rem;color:var(--muted);}
+.progress-legend span{display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap;}
+.progress-legend i{width:.55rem;height:.55rem;border-radius:50%;display:inline-block;}
+.progress-legend .legend-low i{background:#dc2626;}
+.progress-legend .legend-mid i{background:#eab308;}
+.progress-legend .legend-high i{background:#16a34a;}
 
 .alert-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:800;padding:.3rem .7rem;border-radius:20px;margin-left:.3rem;letter-spacing:.02em;}
 .alert-badge.danger{background:var(--danger-bg);color:var(--danger);animation:pulse 2s ease-in-out infinite;}
@@ -367,6 +373,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
           <span id="publication-label" style="font-size:.8rem;font-weight:700;color:var(--accent);"></span>
           <span id="publication-deadline" style="font-size:.8rem;font-weight:700;color:var(--danger);background:rgba(220,38,38,.08);padding:.25rem .65rem;border-radius:999px;border:1px solid rgba(220,38,38,.18);">⏳ Deadline : --</span>
+          <button id="new-publication-button" class="btn-secondary hidden" type="button" onclick="openPublicationModal()" style="padding:.3rem .65rem;font-size:.75rem;">➕ Nouvelle publication</button>
         </div>
         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
           <span id="alert-badges"></span>
@@ -390,6 +397,11 @@ tbody tr:last-child td{border-bottom:none;}
           <span id="progress-text" style="color:var(--accent);">0%</span>
         </div>
         <div class="progress-bg"><div id="progress-bar" class="progress-fill"></div></div>
+        <div class="progress-legend" aria-label="Légende de progression">
+          <span class="legend-low"><i aria-hidden="true"></i>À faire</span>
+          <span class="legend-mid"><i aria-hidden="true"></i>En cours</span>
+          <span class="legend-high"><i aria-hidden="true"></i>Terminé</span>
+        </div>
       </div>
     </header>
   </div>
@@ -499,6 +511,30 @@ tbody tr:last-child td{border-bottom:none;}
   </form>
 </div>
 
+<div id="publication-modal" class="modal-backdrop project-modal hidden">
+  <form class="modal" onsubmit="event.preventDefault();submitNewPublication();">
+    <h2 class="modal-title">Créer une nouvelle publication</h2>
+    <p class="modal-subtitle">L’avancement et les assignations seront remis à zéro. Les commentaires, sous-tâches et deadlines des tâches seront conservés.</p>
+    <label for="publication-name">Nom du projet</label>
+    <input id="publication-name" type="text" maxlength="100" required>
+    <label for="publication-title">Entête / titre affiché</label>
+    <input id="publication-title" type="text" maxlength="200" required>
+    <label for="publication-description">Description</label>
+    <input id="publication-description" type="text" maxlength="500" required>
+    <label for="publication-date">Date de publication</label>
+    <input id="publication-date" type="date" required>
+    <label for="publication-deadline-date">Nouvelle deadline</label>
+    <input id="publication-deadline-date" type="date" required>
+    <label for="publication-pin">Confirmez votre code PIN</label>
+    <input id="publication-pin" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" required>
+    <div id="publication-error" class="error-msg hidden" role="alert"></div>
+    <div class="modal-actions">
+      <button type="submit" class="btn-primary" id="publication-submit">Créer et réinitialiser</button>
+      <button type="button" class="btn-secondary" onclick="closePublicationModal()">Annuler</button>
+    </div>
+  </form>
+</div>
+
 <button id="back-to-top" onclick="scrollToTop()" title="Retour en haut" aria-label="Retour en haut">↑</button>
 
 <div id="toast-container"></div>
@@ -535,6 +571,7 @@ let BROADCAST_SEEN_KEY = '';
 let TEMPLATE_CACHE_KEY = '';
 let TEMPLATE_EXTENSIONS = {};
 const PRESENCE_HEARTBEAT_MS = 30000;
+const PUBLICATION_MANAGER = 'Tovo';
 
 let currentUser = null;
 let systemUsers = {};
@@ -659,17 +696,9 @@ async function loadProjectConfiguration(){
   migrateV2toV3(namespace);
 
   document.documentElement.lang = config.app.locale || 'fr';
-  document.title = config.app.title;
-  document.getElementById('auth-app-name').textContent = 'Intranet ' + config.app.name;
   document.getElementById('auth-team-label').textContent = config.team.label + ' :';
-  document.getElementById('main-page-title').textContent = config.app.title + ' (' + TASKS.length + ' tâches)';
-  document.getElementById('page-visit-summary').textContent = config.app.description;
+  applyPublicationHeader(config.app);
   document.querySelectorAll('.task-total').forEach(function(element){ element.textContent = TASKS.length; });
-  const publicationLabel = document.getElementById('publication-label');
-  if(config.app.publicationDate){
-    const date = new Date(config.app.publicationDate + 'T00:00:00');
-    publicationLabel.textContent = '🗓️ Publication : ' + date.toLocaleDateString(config.app.locale || 'fr', {day:'numeric',month:'long',year:'numeric'});
-  }else publicationLabel.remove();
 
   const authUsers = document.getElementById('auth-user-select');
   config.team.members.forEach(function(member){
@@ -727,7 +756,8 @@ async function refreshAddedTasks(){
     const response = await fetch('/api/config');
     if(!response.ok) throw new Error('HTTP ' + response.status);
     const config = await response.json();
-    if(!config || !Array.isArray(config.tasks)) throw new Error('Format des tâches invalide');
+    if(!config || !config.app || !Array.isArray(config.tasks)) throw new Error('Format des tâches invalide');
+    applyPublicationHeader(config.app);
     const knownIds = new Set(TASKS.map(function(task){ return task.id; }));
     const additions = config.tasks.filter(function(task){ return !knownIds.has(task.id); });
     if(!additions.length) return;
@@ -737,7 +767,6 @@ async function refreshAddedTasks(){
         !APP_CONFIG.priorities.some(function(priority){ return priority.id === task.priority; });
     })) throw new Error('La configuration contient une tâche ajoutée invalide');
     TASKS.push.apply(TASKS, additions);
-    document.getElementById('main-page-title').textContent = APP_CONFIG.app.title + ' (' + TASKS.length + ' tâches)';
     document.querySelectorAll('.task-total').forEach(function(element){ element.textContent = TASKS.length; });
     renderAllRows();
     await refreshTasksState();
@@ -747,6 +776,26 @@ async function refreshAddedTasks(){
   }catch(error){
     console.error('Impossible de synchroniser les nouvelles tâches:', error);
   }
+}
+
+function applyPublicationHeader(app){
+  if(!APP_CONFIG || !app) return;
+  APP_CONFIG.app.name = app.name;
+  APP_CONFIG.app.title = app.title;
+  APP_CONFIG.app.description = app.description;
+  APP_CONFIG.app.publicationDate = app.publicationDate;
+  APP_CONFIG.app.deadlineDate = app.deadlineDate;
+  document.title = app.title;
+  document.getElementById('auth-app-name').textContent = 'Intranet ' + app.name;
+  document.getElementById('main-page-title').textContent = app.title + ' (' + TASKS.length + ' tâches)';
+  document.getElementById('page-visit-summary').textContent = app.description;
+  const publicationLabel = document.getElementById('publication-label');
+  if(app.publicationDate){
+    const date = new Date(app.publicationDate + 'T00:00:00');
+    publicationLabel.textContent = '🗓️ Publication : ' +
+      date.toLocaleDateString(app.locale || 'fr', {day:'2-digit',month:'long',year:'numeric'});
+  }else publicationLabel.textContent = '';
+  updatePublicationDeadline();
 }
 
 async function tryFetchSystemUsers(){
@@ -1314,7 +1363,7 @@ async function submitNewTask(){
     if(!data || !data.task || typeof data.task.id !== 'string') throw new Error('Réponse invalide du serveur.');
     if(!TASKS.some(function(task){ return task.id === data.task.id; })){
       TASKS.push(data.task);
-      document.getElementById('main-page-title').textContent = APP_CONFIG.app.title + ' (' + TASKS.length + ' tâches)';
+      applyPublicationHeader(APP_CONFIG.app);
       document.querySelectorAll('.task-total').forEach(function(element){ element.textContent = TASKS.length; });
     }
     renderAllRows();
@@ -1328,6 +1377,96 @@ async function submitNewTask(){
   }catch(error){
     console.error('Impossible d’ajouter la tâche:', error);
     errorElement.textContent = error.message || 'Impossible d’ajouter la tâche.';
+    errorElement.classList.remove('hidden');
+  }finally{
+    submitButton.disabled = false;
+  }
+}
+
+function formatDateForInput(date){
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' +
+    String(date.getDate()).padStart(2, '0');
+}
+
+function openPublicationModal(){
+  if(!APP_CONFIG || currentUser !== PUBLICATION_MANAGER){
+    showToast('Seul Tovo peut créer une publication.', 'error');
+    return;
+  }
+  const publicationDate = new Date();
+  const deadlineDate = new Date(publicationDate);
+  deadlineDate.setDate(deadlineDate.getDate() + 7);
+  document.getElementById('publication-name').value = APP_CONFIG.app.name;
+  document.getElementById('publication-title').value = APP_CONFIG.app.title;
+  document.getElementById('publication-description').value = APP_CONFIG.app.description;
+  document.getElementById('publication-date').value = formatDateForInput(publicationDate);
+  document.getElementById('publication-deadline-date').value = formatDateForInput(deadlineDate);
+  document.getElementById('publication-pin').value = '';
+  document.getElementById('publication-error').classList.add('hidden');
+  document.getElementById('publication-modal').classList.remove('hidden');
+  document.getElementById('publication-name').focus();
+}
+
+function closePublicationModal(){
+  document.getElementById('publication-modal').classList.add('hidden');
+}
+
+async function submitNewPublication(){
+  const submitButton = document.getElementById('publication-submit');
+  const errorElement = document.getElementById('publication-error');
+  const values = {
+    user: currentUser,
+    pin: document.getElementById('publication-pin').value,
+    name: document.getElementById('publication-name').value.trim(),
+    title: document.getElementById('publication-title').value.trim(),
+    description: document.getElementById('publication-description').value.trim(),
+    publicationDate: document.getElementById('publication-date').value,
+    deadlineDate: document.getElementById('publication-deadline-date').value
+  };
+  if(!APP_CONFIG || currentUser !== PUBLICATION_MANAGER){
+    errorElement.textContent = 'Seul Tovo peut créer une publication.';
+    errorElement.classList.remove('hidden');
+    return;
+  }
+  if(!/^\d{4}$/.test(values.pin)){
+    errorElement.textContent = 'Le code PIN doit comporter 4 chiffres.';
+    errorElement.classList.remove('hidden');
+    return;
+  }
+  if(values.deadlineDate < values.publicationDate){
+    errorElement.textContent = 'La deadline doit être égale ou postérieure à la date de publication.';
+    errorElement.classList.remove('hidden');
+    return;
+  }
+
+  submitButton.disabled = true;
+  errorElement.classList.add('hidden');
+  try{
+    await taskSaveQueue;
+    if(taskDirtyIds.size){
+      throw new Error('Des modifications ne sont pas encore synchronisées. Actualisez les données avant de créer la publication.');
+    }
+    const response = await fetch('/api/publication/reset', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(values)
+    });
+    const data = await response.json();
+    if(!response.ok) throw new Error(data.error || 'HTTP ' + response.status);
+    if(!data || !data.app) throw new Error('Réponse invalide du serveur.');
+
+    applyPublicationHeader(data.app);
+    const resetState = {};
+    TASKS.forEach(function(task){ resetState[task.id] = {checked:false, assignee:''}; });
+    applyStateToUI(resetState);
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(resetState)); }
+    catch(error){ console.error('Impossible de mettre à jour le cache des tâches:', error); }
+    closePublicationModal();
+    logAudit('nouvelle publication', 'ACCESS', values.title);
+    showToast('Nouvelle publication créée et avancement réinitialisé.', 'success');
+  }catch(error){
+    console.error('Impossible de créer la nouvelle publication:', error);
+    errorElement.textContent = error.message || 'Impossible de créer la nouvelle publication.';
     errorElement.classList.remove('hidden');
   }finally{
     submitButton.disabled = false;
@@ -1666,9 +1805,13 @@ function updateProgressUI(){
     if(cb.checked){ done++; row.classList.add('completed-row'); }
     else row.classList.remove('completed-row');
   });
-  const pct = Math.round((done/cbs.length)*100) || 0;
-  document.getElementById('progress-bar').style.width = pct+'%';
+  const pct = cbs.length ? Math.round((done/cbs.length)*100) : 0;
+  const hue = Math.round(pct * 1.2);
+  const progressBar = document.getElementById('progress-bar');
+  progressBar.style.width = pct+'%';
+  progressBar.style.background = 'hsl(' + hue + ', 75%, 45%)';
   document.getElementById('progress-text').innerText = pct + '% (' + done + '/' + cbs.length + ')';
+  document.getElementById('progress-text').style.color = 'hsl(' + hue + ', 75%, 40%)';
 }
 
 /* ---------- STATS ---------- */
@@ -2063,14 +2206,23 @@ function updatePublicationDeadline(){
   const el = document.getElementById('publication-deadline');
   if(!el) return;
 
-  const target = new Date('2026-10-16T23:59:59');
+  const deadline = APP_CONFIG && APP_CONFIG.app.deadlineDate;
+  const resetButton = document.getElementById('new-publication-button');
+  if(!deadline){
+    el.textContent = '⏳ Deadline : --';
+    if(resetButton) resetButton.classList.add('hidden');
+    return;
+  }
+  const target = new Date(deadline + 'T23:59:59');
   const now = new Date();
   const diff = target.getTime() - now.getTime();
 
   if(diff <= 0){
     el.textContent = '⏳ Deadline : expirée';
+    if(resetButton) resetButton.classList.toggle('hidden', !currentUser || currentUser !== PUBLICATION_MANAGER);
     return;
   }
+  if(resetButton) resetButton.classList.add('hidden');
 
   const totalSeconds = Math.floor(diff / 1000);
   const days = Math.floor(totalSeconds / 86400);

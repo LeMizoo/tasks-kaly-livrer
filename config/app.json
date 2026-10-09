@@ -4,7 +4,8 @@
     "title": "Feuille de Route & Dispatching \u2014 Audit GEO",
     "description": "Plan d\u2019intervention et suivi centralis\u00e9 pour Kaly Livrer \u2014 pr\u00e9rempli par Tovo.",
     "storageNamespace": "kaly-livrer",
-    "publicationDate": "2026-10-16",
+    "publicationDate": "2026-10-07",
+    "deadlineDate": "2026-10-16",
     "locale": "fr-MG",
     "theme": {
       "accent": "#e07a1f",

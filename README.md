@@ -2,7 +2,7 @@
 
 ## Réutiliser l’application pour un autre projet
 
-Le tableau, les membres, les catégories, les priorités et les modèles sont définis dans `config/app.json`. Ce fichier contient la configuration Kaly par défaut. Pour créer une autre instance :
+Le tableau, les membres, les catégories, les priorités, les modèles et les dates initiales de publication (`app.publicationDate` et `app.deadlineDate`, au format `AAAA-MM-JJ`) sont définis dans `config/app.json`. Ce fichier contient la configuration Kaly par défaut. Pour créer une autre instance :
 
 1. Copiez `config/app.example.json` vers un fichier de configuration propre au projet.
 2. Personnalisez `app`, `team`, `sections`, `priorities` et `tasks`. Les identifiants de tâches, sections et priorités doivent être uniques et utiliser des lettres, chiffres, tirets ou tirets bas.
@@ -22,11 +22,13 @@ Le serveur valide la configuration au démarrage et la fournit à l’interface 
 
 Chaque déploiement indépendant doit utiliser son propre `DATA_DIR` persistant : il contient les tâches, comptes, commentaires, échéances, modèles modifiés et historique. Ces fichiers de données ne sont pas versionnés. Gardez aussi `storageNamespace` propre à chaque projet pour séparer les données locales des navigateurs. Le fichier de configuration du projet, en revanche, doit être livré avec son déploiement.
 
+La publication active est conservée dans `publication.json` sous `DATA_DIR`. Une fois `app.deadlineDate` expirée, seul Tovo peut créer une nouvelle publication depuis l’interface en remplaçant le nom, le titre, la description et les dates ; le serveur vérifie son PIN. Avant de remettre à zéro l’avancement et les assignations, l’état des tâches est archivé dans `publication-archives.json`. Commentaires, sous-tâches et échéances par tâche sont conservés.
+
 Les membres déclarés dans `team.members` peuvent créer leur code PIN lors de leur première connexion. Les tâches déjà sauvegardées restent intactes lorsqu’on modifie la configuration ; les identifiants retirés de celle-ci ne sont simplement plus affichés ni acceptés pour de nouvelles modifications.
 
 Par défaut, `taskCreator` désigne la seule personne autorisée à créer des tâches (Tovo dans la configuration Kaly, Alex dans l’exemple). L’interface n’affiche le bouton d’ajout qu’à ce membre ; le serveur vérifie aussi son identité et son code PIN. Les tâches ajoutées sont conservées dans `data/added-tasks.json` et partagées à tous les utilisateurs. Sans `taskCreator`, l’ajout est désactivé.
 
-Le bouton « Se connecter / Se déconnecter » reste disponible en haut à droite. La connexion ouvre le formulaire d’accès ; la déconnexion ferme la session et retire le membre de la liste des utilisateurs connectés.
+Le bouton marche/arrêt reste disponible en haut à droite. Sans session valide, le formulaire d’accès s’ouvre au chargement ; la déconnexion ferme la session et retire le membre de la liste des utilisateurs connectés.
 
 ## Historique partagé
 
